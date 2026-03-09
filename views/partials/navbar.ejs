@@ -1,0 +1,55 @@
+<nav class="navbar">
+    <div class="nav-container">
+        <a href="/" class="logo">
+            <div class="logo-icon">M</div>
+            <span>Margin Stallions Asset</span>
+        </a>
+
+        <div class="nav-links">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/about" class="nav-link">About</a>
+            <a href="/faq" class="nav-link">FAQ</a>
+            <a href="/terms" class="nav-link">Terms</a>
+            
+            <% if (user) { %>
+                <div class="user-menu">
+                    <button class="btn btn-outline" style="padding: 8px 20px;">
+                        <i class="fas fa-user"></i>
+                        <%= user.username %>
+                        <i class="fas fa-chevron-down" style="font-size: 12px;"></i>
+                    </button>
+                    <div class="user-dropdown">
+                        <a href="/dashboard" class="dropdown-item">
+                            <i class="fas fa-chart-line"></i> Dashboard
+                        </a>
+                        <% if (user.role === 'admin') { %>
+                            <a href="/admin" class="dropdown-item">
+                                <i class="fas fa-shield-alt"></i> Admin Panel
+                            </a>
+                        <% } %>
+                        <hr style="border: none; border-top: 1px solid var(--border-color); margin: 8px 0;">
+                        <form action="/logout" method="POST" style="margin: 0;">
+                            <button type="submit" class="dropdown-item" style="width: 100%; text-align: left; background: none; border: none; cursor: pointer; color: var(--danger);">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            <% } else { %>
+                <a href="/login" class="nav-link">Login</a>
+                <a href="/register" class="btn btn-primary" style="padding: 10px 24px;">Get Started</a>
+            <% } %>
+        </div>
+
+        <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+</nav>
+
+<script>
+    function toggleMobileMenu() {
+        // Mobile menu toggle logic can be added here
+        alert('Mobile menu - Add sliding menu implementation');
+    }
+</script>

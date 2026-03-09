@@ -1,0 +1,156 @@
+<%- include('partials/head') %>
+<%- include('partials/navbar') %>
+
+<section class="hero">
+    <div class="badge">
+        <i class="fas fa-shield-alt"></i>
+        Trading & Community
+    </div>
+    
+    <h1 class="hero-title">
+        trade <span class="gradient-text-purple">successfully</span> & <span class="gradient-text">safely</span>
+    </h1>
+    
+    <p class="hero-subtitle">
+        Absolute top experts show you how to trade strategically to make your money work for you sustainably.
+    </p>
+    
+    <div class="hero-buttons">
+        <a href="/login" class="btn btn-primary">
+            <i class="fas fa-sign-in-alt"></i>
+            Login Account
+        </a>
+        <a href="/register" class="btn btn-outline">
+            <i class="fas fa-user-plus"></i>
+            Create Account
+        </a>
+    </div>
+    
+    <div class="participants">
+        <div class="avatar-group">
+            <div class="avatar"><i class="fas fa-user"></i></div>
+            <div class="avatar" style="background: linear-gradient(135deg, #f97316, #ec4899);"><i class="fas fa-user"></i></div>
+            <div class="avatar" style="background: linear-gradient(135deg, #10b981, #3b82f6);"><i class="fas fa-user"></i></div>
+            <div class="avatar" style="background: linear-gradient(135deg, #8b5cf6, #ec4899);"><i class="fas fa-user"></i></div>
+            <div class="avatar" style="background: linear-gradient(135deg, #f59e0b, #ef4444);"><i class="fas fa-user"></i></div>
+            <div class="avatar" style="background: var(--secondary-bg); border: 2px dashed var(--border-color);">
+                <i class="fas fa-plus" style="color: var(--text-secondary);"></i>
+            </div>
+        </div>
+        <span class="participants-text">1M+ successful participants</span>
+    </div>
+</section>
+
+<section class="chart-section">
+    <h2 class="section-title">
+        The best time to invest was 2009.<br>
+        <span class="gradient-text">The second best time is now.</span>
+    </h2>
+    
+    <div class="chart-container">
+        <div class="price-display">
+            <div>
+                <div style="color: var(--text-secondary); font-size: 14px; margin-bottom: 4px;">Bitcoin Price</div>
+                <div class="price-main" id="currentPrice">$0.00</div>
+            </div>
+            <div class="price-change positive" id="priceChange">
+                <i class="fas fa-arrow-up"></i>
+                <span id="changePercent">0.00%</span>
+            </div>
+        </div>
+        <canvas id="priceChart" height="100"></canvas>
+    </div>
+</section>
+
+<%- include('partials/footer') %>
+
+<script>
+    const ctx = document.getElementById('priceChart').getContext('2d');
+    
+    // Gradient for chart
+    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, 'rgba(139, 92, 246, 0.3)');
+    gradient.addColorStop(1, 'rgba(139, 92, 246, 0)');
+    
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'BTC Price',
+                data: [],
+                borderColor: '#8b5cf6',
+                backgroundColor: gradient,
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: {
+                    display: false
+                },
+                y: {
+                    display: true,
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.05)'
+                    },
+                    ticks: {
+                        color: '#52525b',
+                        callback: function(value) {
+                            return '$' + value.toLocaleString();
+                        }
+                    }
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            }
+        }
+    });
+
+    const socket = io();
+    
+    socket.on('btcPrice', (data) => {
+        document.getElementById('currentPrice').textContent = '$' + data.price.toLocaleString();
+        
+        const changeEl = document.getElementById('priceChange');
+        const changePercent = data.change24h.toFixed(2);
+        document.getElementById('changePercent').textContent = Math.abs(changePercent) + '%';
+        
+        if (data.change24h >= 0) {
+            changeEl.className = 'price-change positive';
+            changeEl.innerHTML = '<i class="fas fa-arrow-up"></i> <span id="changePercent">' + changePercent + '%</span>';
+        } else {
+            changeEl.className = 'price-change negative';
+            changeEl.innerHTML = '<i class="fas fa-arrow-down"></i> <span id="changePercent">' + Math.abs(changePercent) + '%</span>';
+        }
+    });
+    
+    socket.on('priceHistory', (history) => {
+        if (history.length > 0) {
+            chart.data.labels = history.map((_, i) => i);
+            chart.data.datasets[0].data = history.map(h => h.price);
+            chart.update();
+        }
+    });
+    
+    socket.on('btcPrice', (data) => {
+        if (chart.data.labels.length > 50) {
+            chart.data.labels.shift();
+            chart.data.datasets[0].data.shift();
+        }
+        chart.data.labels.push(chart.data.labels.length);
+        chart.data.datasets[0].data.push(data.price);
+        chart.update('none');
+    });
+</script>

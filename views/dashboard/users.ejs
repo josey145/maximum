@@ -1,0 +1,27 @@
+<%- include('../partials/navbar') %>
+
+<h2>User Management</h2>
+
+<table>
+
+<tr>
+<th>ID</th>
+<th>Username</th>
+<th>Email</th>
+</tr>
+
+<% users.forEach(user=>{ %>
+
+<tr>
+
+<td><%= user.id %></td>
+<td><%= user.username %></td>
+<td><%= user.email %></td>
+
+</tr>
+
+<% }) %>
+
+</table>
+
+<%- include('../partials/footer') %>

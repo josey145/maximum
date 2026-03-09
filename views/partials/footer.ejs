@@ -1,0 +1,35 @@
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="logo" style="font-size: 16px;">
+                <div class="logo-icon" style="width: 32px; height: 32px; font-size: 14px;">M</div>
+                <span>Margin Stallions Asset</span>
+            </div>
+            
+            <div class="footer-links">
+                <a href="/terms" class="footer-link">Terms</a>
+                <a href="/privacy" class="footer-link">Privacy</a>
+                <a href="/contact" class="footer-link">Contact</a>
+            </div>
+            
+            <div style="color: var(--text-secondary); font-size: 14px;">
+                © 2024 Maximum. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Socket.IO -->
+    <script src="/socket.io/socket.io.js"></script>
+    
+    <!-- Flash Messages Auto-hide -->
+    <script>
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.style.opacity = '0';
+                alert.style.transition = 'opacity 0.5s ease';
+                setTimeout(() => alert.remove(), 500);
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

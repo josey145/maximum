@@ -1,0 +1,146 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="dashboard">
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">Dashboard</h1>
+        <p style="color: var(--text-secondary);">Welcome back, <%= user.username %>! Here's your trading overview.</p>
+    </div>
+
+    <% if (success_msg && success_msg.length > 0) { %>
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i> <%= success_msg %>
+        </div>
+    <% } %>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">Current Balance</div>
+            <div class="stat-value gradient-text">$0.00</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Total Profit/Loss</div>
+            <div class="stat-value" style="color: var(--success);">+$0.00</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Active Trades</div>
+            <div class="stat-value">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Win Rate</div>
+            <div class="stat-value">0%</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h3 style="font-size: 20px; font-weight: 600;">Live Bitcoin Price</h3>
+            <span class="badge" style="margin: 0;">
+                <span class="spinner" style="display: inline-block; width: 8px; height: 8px; border-width: 1px; margin-right: 8px;"></span>
+                Live
+            </span>
+        </div>
+        
+        <div class="price-display">
+            <div class="price-main" id="dashboardPrice" style="font-size: 36px;">$0.00</div>
+            <div class="price-change positive" id="dashboardChange">
+                <i class="fas fa-arrow-up"></i> 0.00%
+            </div>
+        </div>
+        
+        <canvas id="dashboardChart" height="80"></canvas>
+    </div>
+
+    <div class="card" style="margin-top: 24px;">
+        <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 16px;">Recent Activity</h3>
+        <% if (trades && trades.length > 0) { %>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% trades.forEach(trade => { %>
+                        <tr>
+                            <td><%= trade.date %></td>
+                            <td><%= trade.type %></td>
+                            <td>$<%= trade.amount %></td>
+                            <td><span class="role-badge role-user"><%= trade.status %></span></td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        <% } else { %>
+            <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                <i class="fas fa-chart-line" style="font-size: 48px; margin-bottom: 16px; opacity: 0.3;"></i>
+                <p>No trading activity yet. Start your first trade!</p>
+                <button class="btn btn-primary" style="margin-top: 16px;">
+                    <i class="fas fa-plus"></i> New Trade
+                </button>
+            </div>
+        <% } %>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>
+
+<script>
+    const ctx = document.getElementById('dashboardChart').getContext('2d');
+    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, 'rgba(139, 92, 246, 0.2)');
+    gradient.addColorStop(1, 'rgba(139, 92, 246, 0)');
+    
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'BTC',
+                data: [],
+                borderColor: '#8b5cf6',
+                backgroundColor: gradient,
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { display: false },
+                y: { 
+                    display: true,
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { 
+                        color: '#52525b',
+                        callback: v => '$' + v.toLocaleString()
+                    }
+                }
+            }
+        }
+    });
+
+    const socket = io();
+    socket.on('btcPrice', (data) => {
+        document.getElementById('dashboardPrice').textContent = '$' + data.price.toLocaleString();
+        const changeEl = document.getElementById('dashboardChange');
+        const pct = data.change24h.toFixed(2);
+        changeEl.className = 'price-change ' + (data.change24h >= 0 ? 'positive' : 'negative');
+        changeEl.innerHTML = `<i class="fas fa-arrow-${data.change24h >= 0 ? 'up' : 'down'}"></i> ${Math.abs(pct)}%`;
+        
+        if (chart.data.labels.length > 30) {
+            chart.data.labels.shift();
+            chart.data.datasets[0].data.shift();
+        }
+        chart.data.labels.push(chart.data.labels.length);
+        chart.data.datasets[0].data.push(data.price);
+        chart.update('none');
+    });
+</script>

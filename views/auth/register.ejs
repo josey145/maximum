@@ -1,0 +1,848 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+
+  .reg-page {
+    min-height: 100vh;
+    background: #0a0a0f;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 16px;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .reg-card {
+    width: 100%;
+    max-width: 560px;
+    background: #111118;
+    border: 1px solid #1e1e2e;
+    border-radius: 20px;
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .reg-card::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 260px; height: 260px;
+    background: radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .progress-wrap {
+    display: flex;
+    align-items: center;
+    margin-bottom: 36px;
+  }
+
+  .prog-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    position: relative;
+  }
+
+  .prog-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    width: 100%;
+    height: 2px;
+    background: #1e1e2e;
+    z-index: 0;
+    transition: background 0.4s;
+  }
+
+  .prog-step.done:not(:last-child)::after { background: #8b5cf6; }
+
+  .prog-dot {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: #1e1e2e;
+    border: 2px solid #2a2a3e;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    color: #52525b;
+    z-index: 1;
+    transition: all 0.3s;
+    position: relative;
+  }
+
+  .prog-step.active .prog-dot {
+    background: #8b5cf6;
+    border-color: #8b5cf6;
+    color: #fff;
+    box-shadow: 0 0 20px rgba(139,92,246,0.4);
+  }
+
+  .prog-step.done .prog-dot { background: #6d28d9; border-color: #6d28d9; color: #fff; }
+
+  .prog-label {
+    font-size: 10px;
+    color: #52525b;
+    margin-top: 6px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .prog-step.active .prog-label { color: #8b5cf6; }
+  .prog-step.done .prog-label { color: #6d28d9; }
+
+  .reg-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    color: #f4f4f5;
+    margin-bottom: 4px;
+  }
+
+  .reg-sub { color: #52525b; font-size: 14px; margin-bottom: 28px; }
+
+  .alert {
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .alert-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #f87171; }
+  .alert-success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: #4ade80; }
+
+  .step-panel { display: none; }
+  .step-panel.active { display: block; animation: fadeUp 0.3s ease; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-group { margin-bottom: 16px; }
+
+  .form-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: #a1a1aa;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 6px;
+  }
+
+  .input-wrap { position: relative; }
+  .input-wrap i {
+    position: absolute;
+    left: 14px; top: 50%;
+    transform: translateY(-50%);
+    color: #3f3f5a;
+    font-size: 14px;
+    pointer-events: none;
+  }
+
+  .form-input {
+    width: 100%;
+    background: #0d0d14;
+    border: 1px solid #1e1e2e;
+    border-radius: 10px;
+    padding: 12px 14px 12px 42px;
+    color: #f4f4f5;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+  }
+
+  .form-input:focus {
+    outline: none;
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 3px rgba(139,92,246,0.15);
+  }
+
+  select.form-input { cursor: pointer; appearance: none; }
+  .form-input::placeholder { color: #3f3f5a; }
+
+  .upload-zone {
+    border: 2px dashed #1e1e2e;
+    border-radius: 12px;
+    padding: 32px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    background: #0d0d14;
+  }
+
+  .upload-zone:hover, .upload-zone.dragover {
+    border-color: #8b5cf6;
+    background: rgba(139,92,246,0.05);
+  }
+
+  .upload-zone input[type="file"] {
+    position: absolute; inset: 0;
+    opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+
+  .upload-icon {
+    width: 52px; height: 52px;
+    background: rgba(139,92,246,0.1);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 12px;
+    font-size: 22px;
+    color: #8b5cf6;
+  }
+
+  .upload-title { color: #a1a1aa; font-size: 14px; font-weight: 500; }
+  .upload-sub { color: #3f3f5a; font-size: 12px; margin-top: 4px; }
+  .upload-preview { display: none; margin-top: 12px; }
+  .upload-preview img { max-height: 120px; border-radius: 8px; border: 1px solid #1e1e2e; }
+  .upload-preview .file-name { color: #8b5cf6; font-size: 13px; margin-top: 6px; }
+
+  .code-inputs {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin: 24px 0;
+  }
+
+  .code-input {
+    width: 64px; height: 64px;
+    background: #0d0d14;
+    border: 2px solid #1e1e2e;
+    border-radius: 12px;
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #f4f4f5;
+    text-align: center;
+    transition: all 0.2s;
+  }
+
+  .code-input:focus {
+    outline: none;
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 3px rgba(139,92,246,0.2);
+  }
+
+  .verify-info {
+    background: rgba(139,92,246,0.08);
+    border: 1px solid rgba(139,92,246,0.2);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 13px;
+    color: #a1a1aa;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+
+  .verify-info strong { color: #8b5cf6; }
+
+  .btn-row { display: flex; gap: 12px; margin-top: 24px; }
+
+  .btn-back {
+    flex: 1;
+    padding: 13px;
+    border-radius: 10px;
+    background: transparent;
+    border: 1px solid #1e1e2e;
+    color: #a1a1aa;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-back:hover { border-color: #3f3f5a; color: #f4f4f5; }
+
+  .btn-next {
+    flex: 2;
+    padding: 13px;
+    border-radius: 10px;
+    background: #8b5cf6;
+    border: none;
+    color: #fff;
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+
+  .btn-next:hover { background: #7c3aed; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(139,92,246,0.3); }
+  .btn-next:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .btn-full { width: 100%; flex: unset; }
+
+  .terms-row {
+    display: flex; align-items: flex-start; gap: 10px;
+    margin-bottom: 20px; font-size: 13px; color: #52525b;
+  }
+  .terms-row input { accent-color: #8b5cf6; margin-top: 3px; flex-shrink: 0; }
+  .terms-row a { color: #8b5cf6; text-decoration: none; }
+
+  .auth-footer { text-align: center; margin-top: 24px; font-size: 14px; color: #52525b; }
+  .auth-footer a { color: #8b5cf6; text-decoration: none; }
+
+  .resend-link { text-align: center; font-size: 13px; color: #52525b; margin-top: 8px; }
+  .resend-link button {
+    background: none; border: none; color: #8b5cf6;
+    cursor: pointer; font-size: 13px; font-family: inherit; padding: 0;
+  }
+  .resend-link button:disabled { color: #52525b; cursor: not-allowed; }
+
+  @media (max-width: 480px) {
+    .reg-card { padding: 28px 20px; }
+    .form-row { grid-template-columns: 1fr; }
+    .code-input { width: 52px; height: 52px; font-size: 22px; }
+  }
+</style>
+
+<div class="reg-page">
+  <div class="reg-card">
+
+    <div class="progress-wrap">
+      <div class="prog-step active" id="prog-1">
+        <div class="prog-dot">1</div>
+        <span class="prog-label">Personal</span>
+      </div>
+      <div class="prog-step" id="prog-2">
+        <div class="prog-dot">2</div>
+        <span class="prog-label">ID Verify</span>
+      </div>
+      <div class="prog-step" id="prog-3">
+        <div class="prog-dot">3</div>
+        <span class="prog-label">Confirm</span>
+      </div>
+    </div>
+
+    <% if (error_msg && error_msg.length > 0) { %>
+      <div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> <%= error_msg %></div>
+    <% } %>
+    <% if (success_msg && success_msg.length > 0) { %>
+      <div class="alert alert-success"><i class="fas fa-check-circle"></i> <%= success_msg %></div>
+    <% } %>
+
+    <!-- STEP 1: Personal Info -->
+    <div class="step-panel active" id="step-1">
+      <h1 class="reg-title">Create Account</h1>
+      <p class="reg-sub">Fill in your personal details to get started</p>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <div class="input-wrap">
+            <i class="fas fa-user"></i>
+            <input type="text" id="s1-username" class="form-input" placeholder="trader2024">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date of Birth</label>
+          <div class="input-wrap">
+            <i class="fas fa-calendar"></i>
+            <input type="date" id="s1-dob" class="form-input">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <div class="input-wrap">
+          <i class="fas fa-envelope"></i>
+          <input type="email" id="s1-email" class="form-input" placeholder="name@example.com">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Mobile Number</label>
+          <div class="input-wrap">
+            <i class="fas fa-phone"></i>
+            <input type="tel" id="s1-phone" class="form-input" placeholder="+1 234 567 8900">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Currency</label>
+          <div class="input-wrap">
+            <i class="fas fa-dollar-sign"></i>
+            <select id="s1-currency" class="form-input">
+              <option value="">Select currency</option>
+              <option value="USD">USD — US Dollar</option>
+              <option value="EUR">EUR — Euro</option>
+              <option value="GBP">GBP — British Pound</option>
+              <option value="NGN">NGN — Nigerian Naira</option>
+              <option value="BTC">BTC — Bitcoin</option>
+              <option value="ETH">ETH — Ethereum</option>
+              <option value="USDT">USDT — Tether</option>
+              <option value="CAD">CAD — Canadian Dollar</option>
+              <option value="AUD">AUD — Australian Dollar</option>
+              <option value="JPY">JPY — Japanese Yen</option>
+              <option value="ZAR">ZAR — South African Rand</option>
+              <option value="GHS">GHS — Ghanaian Cedi</option>
+              <option value="KES">KES — Kenyan Shilling</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Country</label>
+          <div class="input-wrap">
+            <i class="fas fa-globe"></i>
+            <select id="s1-country" class="form-input">
+              <option value="">Select country</option>
+              <option value="NG">Nigeria</option>
+              <option value="US">United States</option>
+              <option value="GB">United Kingdom</option>
+              <option value="GH">Ghana</option>
+              <option value="KE">Kenya</option>
+              <option value="ZA">South Africa</option>
+              <option value="CA">Canada</option>
+              <option value="AU">Australia</option>
+              <option value="DE">Germany</option>
+              <option value="FR">France</option>
+              <option value="AE">UAE</option>
+              <option value="IN">India</option>
+              <option value="BR">Brazil</option>
+              <option value="OTHER">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">State / Region</label>
+          <div class="input-wrap">
+            <i class="fas fa-map"></i>
+            <input type="text" id="s1-state" class="form-input" placeholder="Lagos">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">City</label>
+          <div class="input-wrap">
+            <i class="fas fa-city"></i>
+            <input type="text" id="s1-city" class="form-input" placeholder="Lagos">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">ZIP / Postal Code</label>
+          <div class="input-wrap">
+            <i class="fas fa-envelope-open"></i>
+            <input type="text" id="s1-zip" class="form-input" placeholder="100001">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Street Address</label>
+        <div class="input-wrap">
+          <i class="fas fa-home"></i>
+          <input type="text" id="s1-address" class="form-input" placeholder="123 Main Street, Suite 4">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <div class="input-wrap">
+          <i class="fas fa-lock"></i>
+          <input type="password" id="s1-password" class="form-input" placeholder="Min 8 chars, uppercase, number & symbol">
+        </div>
+        <small style="color:#3f3f5a;font-size:12px;margin-top:4px;display:block;">Must contain uppercase, lowercase, number and special character</small>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Confirm Password</label>
+        <div class="input-wrap">
+          <i class="fas fa-lock"></i>
+          <input type="password" id="s1-confirm" class="form-input" placeholder="••••••••">
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-next btn-full" id="btn-step1-next">
+          Continue <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 2: ID Upload -->
+    <div class="step-panel" id="step-2">
+      <h1 class="reg-title">Identity Verification</h1>
+      <p class="reg-sub">Upload a government-issued ID to verify your account</p>
+
+      <div class="form-group">
+        <label class="form-label">ID Type</label>
+        <div class="input-wrap">
+          <i class="fas fa-id-card"></i>
+          <select id="s2-idtype" class="form-input">
+            <option value="">Select ID type</option>
+            <option value="passport">International Passport</option>
+            <option value="national_id">National ID Card</option>
+            <option value="drivers_license">Driver's License</option>
+            <option value="voters_card">Voter's Card</option>
+            <option value="residence_permit">Residence Permit</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">ID Number</label>
+        <div class="input-wrap">
+          <i class="fas fa-hashtag"></i>
+          <input type="text" id="s2-idnumber" class="form-input" placeholder="Enter your ID number">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Front of ID</label>
+        <div class="upload-zone" id="upload-front">
+          <input type="file" id="s2-idfront" accept="image/*,.pdf">
+          <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+          <div class="upload-title">Click or drag to upload front of ID</div>
+          <div class="upload-sub">JPG, PNG or PDF — max 5MB</div>
+          <div class="upload-preview" id="preview-front"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Back of ID <span style="color:#3f3f5a;font-size:11px;">(optional for passport)</span></label>
+        <div class="upload-zone" id="upload-back">
+          <input type="file" id="s2-idback" accept="image/*,.pdf">
+          <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+          <div class="upload-title">Click or drag to upload back of ID</div>
+          <div class="upload-sub">JPG, PNG or PDF — max 5MB</div>
+          <div class="upload-preview" id="preview-back"></div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-back" id="btn-step2-back"><i class="fas fa-arrow-left"></i> Back</button>
+        <button class="btn-next" id="btn-step2-next">Continue <i class="fas fa-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <!-- STEP 3: Email Verification + Submit -->
+    <div class="step-panel" id="step-3">
+      <h1 class="reg-title">Verify Your Email</h1>
+      <p class="reg-sub">Enter the 4-digit code sent to your email</p>
+
+      <div class="verify-info">
+        A verification code has been sent to <strong id="display-email">your email</strong>
+      </div>
+
+      <div class="code-inputs">
+        <input type="text" inputmode="numeric" class="code-input" maxlength="1" id="c1">
+        <input type="text" inputmode="numeric" class="code-input" maxlength="1" id="c2">
+        <input type="text" inputmode="numeric" class="code-input" maxlength="1" id="c3">
+        <input type="text" inputmode="numeric" class="code-input" maxlength="1" id="c4">
+      </div>
+
+      <!-- The actual form that POSTs to /register -->
+      <form action="/register" method="POST" enctype="multipart/form-data" id="reg-form">
+        <input type="hidden" name="username"   id="f-username">
+        <input type="hidden" name="email"      id="f-email">
+        <input type="hidden" name="password"   id="f-password">
+        <input type="hidden" name="phone"      id="f-phone">
+        <input type="hidden" name="dob"        id="f-dob">
+        <input type="hidden" name="currency"   id="f-currency">
+        <input type="hidden" name="country"    id="f-country">
+        <input type="hidden" name="state"      id="f-state">
+        <input type="hidden" name="city"       id="f-city">
+        <input type="hidden" name="zip"        id="f-zip">
+        <input type="hidden" name="address"    id="f-address">
+        <input type="hidden" name="idType"     id="f-idtype">
+        <input type="hidden" name="idNumber"   id="f-idnumber">
+        <input type="hidden" name="verifyCode" id="f-code">
+        <input type="file"   name="idFront"    id="f-idfront" style="display:none" accept="image/*,.pdf">
+        <input type="file"   name="idBack"     id="f-idback"  style="display:none" accept="image/*,.pdf">
+
+        <div class="terms-row">
+          <input type="checkbox" id="terms" required>
+          <label for="terms">I agree to the <a href="/terms">Terms of Service</a> and <a href="/privacy">Privacy Policy</a></label>
+        </div>
+
+        <button type="submit" class="btn-next btn-full" id="submit-btn">
+          <i class="fas fa-check-circle"></i> Create Account
+        </button>
+      </form>
+
+      <div class="resend-link" style="margin-top:12px;">
+        Didn't receive it?
+        <button id="resend-btn">Resend code</button>
+        <span id="resend-timer" style="display:none;">Resend in <span id="countdown">60</span>s</span>
+      </div>
+
+      <div class="btn-row" style="margin-top:16px;">
+        <button class="btn-back btn-full" id="btn-step3-back"><i class="fas fa-arrow-left"></i> Back</button>
+      </div>
+    </div>
+
+    <div class="auth-footer">
+      Already have an account? <a href="/login">Sign in</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  let resendInterval;
+
+  // ── Step navigation ──────────────────────────────────────────────────────
+  function setStep(n) {
+    document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+    const c1 = document.getElementById('c1');
+    const c2 = document.getElementById('c2');
+    const c3 = document.getElementById('c3');
+    const c4 = document.getElementById('c4');
+    
+    console.log('Code elements:', c1, c2, c3, c4); // Should show HTML elements
+    
+    const code = 
+    (document.getElementById('c1')?.value || '') +
+    (document.getElementById('c2')?.value || '') +
+    (document.getElementById('c3')?.value || '') +
+    (document.getElementById('c4')?.value || '');
+    
+    if (code.length !== 4 || !/^\d{4}$/.test(code)) {
+        e.preventDefault();
+        alert('Please enter the full 4-digit verification code. You entered: ' + code);
+        return false;
+    }
+    for (let i = 1; i <= 3; i++) {
+      const el = document.getElementById('prog-' + i);
+      el.classList.remove('active', 'done');
+      if (i < n)  el.classList.add('done');
+      if (i === n) el.classList.add('active');
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ── Step 1 validation ────────────────────────────────────────────────────
+  function goStep2() {
+    const u   = document.getElementById('s1-username').value.trim();
+    const e   = document.getElementById('s1-email').value.trim();
+    const p   = document.getElementById('s1-password').value;
+    const c   = document.getElementById('s1-confirm').value;
+    const ph  = document.getElementById('s1-phone').value.trim();
+    const dob = document.getElementById('s1-dob').value;
+    const cur = document.getElementById('s1-currency').value;
+    const co  = document.getElementById('s1-country').value;
+    const st  = document.getElementById('s1-state').value.trim();
+    const ci  = document.getElementById('s1-city').value.trim();
+    const ad  = document.getElementById('s1-address').value.trim();
+
+    if (!u || u.length < 3)        return alert('Username must be at least 3 characters.');
+    if (!e || !e.includes('@'))    return alert('Please enter a valid email address.');
+    if (!ph)                        return alert('Mobile number is required.');
+    if (!dob)                       return alert('Date of birth is required.');
+    if (!cur)                       return alert('Please select your preferred currency.');
+    if (!co)                        return alert('Please select your country.');
+    if (!st || !ci || !ad)          return alert('State, city and address are all required.');
+    if (p.length < 8)               return alert('Password must be at least 8 characters.');
+    if (!/[A-Z]/.test(p) || !/[0-9]/.test(p) || !/[^A-Za-z0-9]/.test(p))
+      return alert('Password must contain uppercase, number and special character.');
+    if (p !== c)                    return alert('Passwords do not match.');
+    setStep(2);
+  }
+
+  // ── Step 2 → send code ───────────────────────────────────────────────────
+  async function goStep3() {
+    const idType   = document.getElementById('s2-idtype').value;
+    const idNumber = document.getElementById('s2-idnumber').value.trim();
+    const idFront  = document.getElementById('s2-idfront').files[0];
+
+    if (!idType)   return alert('Please select your ID type.');
+    if (!idNumber) return alert('Please enter your ID number.');
+    if (!idFront)  return alert('Please upload the front of your ID.');
+
+    const btn = document.getElementById('btn-step2-next');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending code...';
+
+    try {
+      const email = document.getElementById('s1-email').value.trim();
+      const res = await fetch('/register/send-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+
+      if (!data.success) {
+        alert(data.message || 'Failed to send verification code. Please try again.');
+        btn.disabled = false;
+        btn.innerHTML = 'Continue <i class="fas fa-arrow-right"></i>';
+        return;
+      }
+
+      document.getElementById('display-email').textContent = email;
+      setStep(3);
+      startResendTimer();
+    } catch (err) {
+      alert('Network error. Please try again.');
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = 'Continue <i class="fas fa-arrow-right"></i>';
+  }
+
+  // ── Code box helpers ─────────────────────────────────────────────────────
+  function codeNext(el, nextId) {
+    el.value = el.value.replace(/[^0-9]/g, '');
+    if (el.value && nextId) document.getElementById(nextId).focus();
+  }
+
+  function codePrev(e, el, prevId) {
+    if (e.key === 'Backspace' && !el.value && prevId)
+      document.getElementById(prevId).focus();
+  }
+
+  // ── Resend timer ─────────────────────────────────────────────────────────
+  function startResendTimer() {
+    clearInterval(resendInterval);
+    let sec = 60;
+    document.getElementById('resend-btn').style.display = 'none';
+    document.getElementById('resend-timer').style.display = 'inline';
+    document.getElementById('countdown').textContent = sec;
+    resendInterval = setInterval(() => {
+      sec--;
+      document.getElementById('countdown').textContent = sec;
+      if (sec <= 0) {
+        clearInterval(resendInterval);
+        document.getElementById('resend-timer').style.display = 'none';
+        document.getElementById('resend-btn').style.display = 'inline';
+      }
+    }, 1000);
+  }
+
+  // ── File preview ─────────────────────────────────────────────────────────
+  function previewFile(side, input) {
+    const preview = document.getElementById('preview-' + side);
+    const file = input.files[0];
+    if (!file) return;
+    preview.style.display = 'block';
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        preview.innerHTML =
+          '<img src="' + e.target.result + '" alt="ID Preview">' +
+          '<div class="file-name"><i class="fas fa-check-circle"></i> ' + file.name + '</div>';
+      };
+      reader.readAsDataURL(file);
+    } else {
+      preview.innerHTML = '<div class="file-name"><i class="fas fa-file-pdf"></i> ' + file.name + '</div>';
+    }
+  }
+
+  function transferFile(srcId, destId) {
+    const src  = document.getElementById(srcId);
+    const dest = document.getElementById(destId);
+    if (src.files && src.files.length > 0) {
+      try {
+        const dt = new DataTransfer();
+        dt.items.add(src.files[0]);
+        dest.files = dt.files;
+      } catch(e) { console.warn('File transfer failed:', e); }
+    }
+  }
+
+  // ── Wire everything up after DOM ready ───────────────────────────────────
+  document.addEventListener('DOMContentLoaded', function () {
+
+    // Step buttons
+    document.getElementById('btn-step1-next').addEventListener('click', goStep2);
+    document.getElementById('btn-step2-back').addEventListener('click', function() { setStep(1); });
+    document.getElementById('btn-step2-next').addEventListener('click', goStep3);
+    document.getElementById('btn-step3-back').addEventListener('click', function() { setStep(2); });
+
+    // File inputs
+    document.getElementById('s2-idfront').addEventListener('change', function() { previewFile('front', this); });
+    document.getElementById('s2-idback').addEventListener('change',  function() { previewFile('back',  this); });
+
+    // Code digit inputs
+    const codeIds = ['c1','c2','c3','c4'];
+    codeIds.forEach(function(id, idx) {
+      const el = document.getElementById(id);
+      el.addEventListener('input', function() {
+        codeNext(this, codeIds[idx + 1] || '');
+      });
+      el.addEventListener('keydown', function(e) {
+        codePrev(e, this, codeIds[idx - 1] || '');
+      });
+    });
+
+    // Resend button
+    document.getElementById('resend-btn').addEventListener('click', function(e) {
+      e.preventDefault();
+      goStep3();
+    });
+
+    // Form submit — populate hidden fields before sending
+    document.getElementById('reg-form').addEventListener('submit', function(e) {
+      const code = codeIds.map(id => document.getElementById(id).value).join('');
+      if (code.length < 4 || code.includes('')) {
+        e.preventDefault();
+        alert('Please enter the full 4-digit verification code.');
+        return;
+      }
+      if (!document.getElementById('terms').checked) {
+        e.preventDefault();
+        alert('You must accept the Terms of Service.');
+        return;
+      }
+
+      document.getElementById('f-username').value = document.getElementById('s1-username').value.trim();
+      document.getElementById('f-email').value    = document.getElementById('s1-email').value.trim();
+      document.getElementById('f-password').value = document.getElementById('s1-password').value;
+      document.getElementById('f-phone').value    = document.getElementById('s1-phone').value.trim();
+      document.getElementById('f-dob').value      = document.getElementById('s1-dob').value;
+      document.getElementById('f-currency').value = document.getElementById('s1-currency').value;
+      document.getElementById('f-country').value  = document.getElementById('s1-country').value;
+      document.getElementById('f-state').value    = document.getElementById('s1-state').value.trim();
+      document.getElementById('f-city').value     = document.getElementById('s1-city').value.trim();
+      document.getElementById('f-zip').value      = document.getElementById('s1-zip').value.trim();
+      document.getElementById('f-address').value  = document.getElementById('s1-address').value.trim();
+      document.getElementById('f-idtype').value   = document.getElementById('s2-idtype').value;
+      document.getElementById('f-idnumber').value = document.getElementById('s2-idnumber').value.trim();
+      document.getElementById('f-code').value     = code;
+
+      transferFile('s2-idfront', 'f-idfront');
+      transferFile('s2-idback',  'f-idback');
+    });
+
+    // Drag and drop on upload zones
+    document.querySelectorAll('.upload-zone').forEach(function(zone) {
+      zone.addEventListener('dragover',  function(e) { e.preventDefault(); zone.classList.add('dragover'); });
+      zone.addEventListener('dragleave', function()  { zone.classList.remove('dragover'); });
+      zone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        zone.classList.remove('dragover');
+        const input = zone.querySelector('input[type="file"]');
+        if (e.dataTransfer.files.length) {
+          try {
+            const dt = new DataTransfer();
+            dt.items.add(e.dataTransfer.files[0]);
+            input.files = dt.files;
+            input.dispatchEvent(new Event('change'));
+          } catch(err) { console.warn('Drag drop failed:', err); }
+        }
+      });
+    });
+  });
+</script>
+
+<%- include('../partials/footer') %>
