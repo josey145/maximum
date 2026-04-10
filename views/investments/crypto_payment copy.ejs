@@ -1,0 +1,245 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<style>
+    .payment-container {
+        max-width: 600px;
+        margin: 40px auto;
+        padding: 24px;
+    }
+
+    .payment-card {
+        background: #111118;
+        border: 1px solid #1e1e2e;
+        border-radius: 20px;
+        padding: 32px;
+        text-align: center;
+    }
+
+    .payment-header {
+        margin-bottom: 24px;
+    }
+
+    .payment-icon {
+        width: 80px;
+        height: 80px;
+        background: rgba(245, 158, 11, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+        font-size: 40px;
+        color: #f59e0b;
+    }
+
+    .amount-display {
+        font-size: 32px;
+        font-weight: 700;
+        color: #f4f4f5;
+        margin-bottom: 8px;
+    }
+
+    .qr-section {
+        background: white;
+        padding: 20px;
+        border-radius: 16px;
+        margin: 24px 0;
+        display: inline-block;
+    }
+
+    .qr-code {
+        width: 200px;
+        height: 200px;
+    }
+
+    .address-box {
+        background: #0d0d14;
+        border: 1px solid #1e1e2e;
+        border-radius: 12px;
+        padding: 16px;
+        margin: 16px 0;
+        position: relative;
+    }
+
+    .address-label {
+        font-size: 12px;
+        color: #52525b;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+    }
+
+    .address-value {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 14px;
+        color: #f4f4f5;
+        word-break: break-all;
+        line-height: 1.5;
+    }
+
+    .copy-btn {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        background: #1e1e2e;
+        border: none;
+        color: #a1a1aa;
+        padding: 8px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 12px;
+    }
+
+    .copy-btn:hover {
+        background: #2e2e3e;
+        color: #f4f4f5;
+    }
+
+    .warning-box {
+        background: rgba(245, 158, 11, 0.1);
+        border: 1px solid rgba(245, 158, 11, 0.2);
+        border-radius: 12px;
+        padding: 16px;
+        margin: 24px 0;
+        text-align: left;
+    }
+
+    .warning-box i {
+        color: #f59e0b;
+        margin-right: 8px;
+    }
+
+    .timer {
+        font-size: 24px;
+        font-weight: 700;
+        color: #ef4444;
+        margin: 16px 0;
+    }
+
+    .btn-confirm {
+        width: 100%;
+        padding: 16px;
+        background: #22c55e;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 16px;
+    }
+
+    .btn-cancel {
+        width: 100%;
+        padding: 16px;
+        background: transparent;
+        border: 1px solid #1e1e2e;
+        color: #a1a1aa;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 12px;
+    }
+</style>
+
+<div class="payment-container">
+    <div class="payment-card">
+        <div class="payment-header">
+            <div class="payment-icon">
+                <i class="fab fa-bitcoin"></i>
+            </div>
+            <h2 style="color: #f4f4f5; margin-bottom: 8px;">
+                <%= typeof isInvestment !== 'undefined' && isInvestment ? 'Complete Investment' : 'Add Funds' %>
+            </h2>
+            <% if (typeof planName !== 'undefined') { %>
+                <p style="color: #8b5cf6; font-weight: 600;"><%= planName %> Plan</p>
+            <% } %>
+        </div>
+
+        <div class="amount-display">
+            $<%= parseFloat(amount).toFixed(2) %>
+        </div>
+        <p style="color: #52525b;">Send <%= cryptoType %> to complete payment</p>
+
+        <div class="qr-section">
+            <% if (typeof qrCode !== 'undefined' && qrCode) { %>
+                <img src="<%= qrCode %>" alt="QR Code" class="qr-code">
+            <% } else { %>
+                <div style="width: 200px; height: 200px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #999;">
+                    QR Code
+                </div>
+            <% } %>
+        </div>
+
+        <div class="address-box">
+            <div class="address-label">Send <%= cryptoType %> to this address</div>
+            <div class="address-value" id="walletAddress"><%= address %></div>
+            <button class="copy-btn" onclick="copyAddress()">
+                <i class="fas fa-copy"></i> Copy
+            </button>
+        </div>
+
+        <% if (typeof network !== 'undefined' && network) { %>
+            <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px; padding: 12px; margin-bottom: 16px;">
+                <i class="fas fa-network-wired" style="color: #3b82f6; margin-right: 8px;"></i>
+                <span style="color: #3b82f6; font-weight: 600;"><%= network %></span>
+            </div>
+        <% } %>
+
+        <div class="warning-box">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>Important:</strong>
+            <ul style="margin: 8px 0 0 20px; color: #a1a1aa; font-size: 14px;">
+                <li>Send only <%= cryptoType %> to this address</li>
+                <li>Double-check the address before sending</li>
+                <li>Payment will be confirmed in 10-30 minutes</li>
+                <li>Minimum confirmations required: 3</li>
+            </ul>
+        </div>
+
+        <div class="timer" id="countdown">30:00</div>
+        <p style="color: #52525b; font-size: 14px;">Time remaining to complete payment</p>
+
+        <form action="/investments/confirm-crypto" method="POST">
+            <input type="hidden" name="amount" value="<%= amount %>">
+            <input type="hidden" name="crypto_type" value="<%= cryptoType %>">
+            
+            <button type="submit" class="btn-confirm">
+                <i class="fas fa-check"></i> I've Made the Payment
+            </button>
+        </form>
+
+        <a href="/investments" class="btn-cancel">Cancel</a>
+    </div>
+</div>
+
+<script>
+function copyAddress() {
+    const address = document.getElementById('walletAddress').textContent;
+    navigator.clipboard.writeText(address).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        btn.innerHTML = '<i class="fas fa-check"></i> Copied';
+        setTimeout(() => {
+            btn.innerHTML = '<i class="fas fa-copy"></i> Copy';
+        }, 2000);
+    });
+}
+
+// Countdown timer
+let timeLeft = 30 * 60; // 30 minutes
+const countdownEl = document.getElementById('countdown');
+
+const timer = setInterval(() => {
+    timeLeft--;
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
+    countdownEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    
+    if (timeLeft <= 0) {
+        clearInterval(timer);
+        countdownEl.textContent = 'EXPIRED';
+        document.querySelector('.btn-confirm').disabled = true;
+    }
+}, 1000);
+</script>
+
+<%- include('../partials/footer') %>

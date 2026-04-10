@@ -1,0 +1,64 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<link rel="stylesheet" href="../../css/message.css">
+
+
+
+<div class="dashboard">
+    <div class="inbox-header">
+        <div>
+            <h1 class="dashboard-title">
+                <i class="fas fa-inbox" style="color: #8b5cf6;"></i> My Messages
+            </h1>
+            <p style="color: var(--text-secondary);">Communications from the support team</p>
+        </div>
+        <% if (unreadCount > 0) { %>
+        <div class="unread-badge-large">
+            <%= unreadCount %> unread
+        </div>
+        <% } %>
+    </div>
+
+    <div class="inbox-container">
+        <% if (messages.length === 0) { %>
+        <div class="messages-list">
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <h3>No messages yet</h3>
+                <p>When you receive messages from our team, they'll appear here.</p>
+            </div>
+        </div>
+        <% } else { %>
+        <div class="messages-list">
+            <% messages.forEach(msg => { %>
+            <a href="/messages/<%= msg.id %>" class="message-card <%= msg.status === 'unread' ? 'unread' : '' %>">
+                <div class="message-icon icon-<%= msg.type %>">
+                    <% if (msg.type === 'warning') { %><i class="fas fa-exclamation-triangle"></i><% } %>
+                    <% if (msg.type === 'pending') { %><i class="fas fa-clock"></i><% } %>
+                    <% if (msg.type === 'welcome') { %><i class="fas fa-hand-sparkles"></i><% } %>
+                    <% if (msg.type === 'general') { %><i class="fas fa-envelope"></i><% } %>
+                </div>
+                <div class="message-info">
+                    <div class="message-top">
+                        <h3 class="message-subject"><%= msg.subject %></h3>
+                        <% if (msg.status === 'unread') { %>
+                        <span class="unread-dot"></span>
+                        <% } %>
+                    </div>
+                    <p class="message-preview"><%= msg.message.substring(0, 100) %>...</p>
+                    <div class="message-meta">
+                        <span><i class="fas fa-user-shield"></i> <%= msg.admin_username %></span>
+                        <span><i class="fas fa-clock"></i> <%= new Date(msg.created_at).toLocaleString() %></span>
+                        <% if (msg.reply_count > 0) { %>
+                        <span style="color: #3b82f6;"><i class="fas fa-reply"></i> <%= msg.reply_count %> replies</span>
+                        <% } %>
+                    </div>
+                </div>
+            </a>
+            <% }) %>
+        </div>
+        <% } %>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

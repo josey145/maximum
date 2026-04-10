@@ -1,0 +1,1006 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<style>
+.wallet-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 20px;
+    align-items: center;
+}
+
+.wallet-active { border-left: 4px solid var(--success); }
+.wallet-inactive { border-left: 4px solid var(--danger); opacity: 0.7; }
+
+.network-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    border-left: 4px solid #8b5cf6;
+}
+
+.network-inactive {
+    border-left-color: var(--danger);
+    opacity: 0.6;
+}
+
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.amount-display {
+    font-size: 24px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.method-badge {
+    background: var(--secondary-bg);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+.tab-container {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 16px;
+}
+
+.tab-btn {
+    padding: 12px 24px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.tab-btn.active {
+    background: var(--primary);
+    color: white;
+}
+
+.tab-btn:hover:not(.active) {
+    background: var(--secondary-bg);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.address-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--text-secondary);
+    background: var(--secondary-bg);
+    padding: 6px 12px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.network-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.network-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+}
+
+.network-title {
+    flex: 1;
+}
+
+.network-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.wallet-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.wallet-table th {
+    text-align: left;
+    padding: 12px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border);
+}
+
+.wallet-table td {
+    padding: 16px 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.wallet-table tr:last-child td {
+    border-bottom: none;
+}
+
+.primary-badge {
+    background: rgba(245, 158, 11, 0.2);
+    color: #f59e0b;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-secondary);
+}
+
+.empty-state i {
+    font-size: 48px;
+    opacity: 0.3;
+    margin-bottom: 16px;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-content {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow: hidden;
+    animation: modalSlide 0.3s ease;
+}
+
+@keyframes modalSlide {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.modal-body {
+    padding: 24px;
+    overflow-y: auto;
+    max-height: calc(90vh - 140px);
+}
+
+.modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--secondary-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.checkbox-wrapper input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary);
+}
+
+.stats-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+@media (max-width: 1024px) {
+    .stats-grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .stats-grid-4 {
+        grid-template-columns: 1fr;
+    }
+    
+    .wallet-card {
+        grid-template-columns: 1fr;
+    }
+    
+    .network-header {
+        flex-wrap: wrap;
+    }
+}
+</style>
+
+<div class="dashboard">
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">Wallet & Network Management</h1>
+        <p style="color: var(--text-secondary);">Manage deposit addresses and blockchain networks</p>
+    </div>
+
+    <% if (success_msg && success_msg.length > 0) { %>
+        <div class="alert alert-success"><i class="fas fa-check-circle"></i> <%= success_msg %></div>
+    <% } %>
+
+    <% if (error_msg && error_msg.length > 0) { %>
+        <div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> <%= error_msg %></div>
+    <% } %>
+
+    <!-- Tabs -->
+    <div class="tab-container">
+        <button class="tab-btn active" onclick="showTab('networks')">
+            <i class="fas fa-network-wired"></i> Networks 
+            <span style="background: #8b5cf6; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 8px;">
+                <%= networks.length %>
+            </span>
+        </button>
+        <button class="tab-btn" onclick="showTab('wallets')">
+            <i class="fas fa-wallet"></i> Wallet Addresses
+            <span style="background: var(--success); color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 8px;">
+                <%= Object.values(walletsByNetwork).reduce((acc, group) => acc + group.wallets.length, 0) %>
+            </span>
+        </button>
+    </div>
+
+    <!-- NETWORKS TAB -->
+    <div id="networksTab" class="tab-content active">
+        <!-- Stats -->
+        <div class="stats-grid-4">
+            <div class="stat-card">
+                <div class="stat-label">Active Networks</div>
+                <div class="stat-value" style="color: var(--success);">
+                    <%= networks.filter(n => n.is_active).length %>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Inactive Networks</div>
+                <div class="stat-value" style="color: var(--danger);">
+                    <%= networks.filter(n => !n.is_active).length %>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Wallets</div>
+                <div class="stat-value" style="color: #8b5cf6;">
+                    <%= Object.values(walletsByNetwork).reduce((acc, group) => acc + group.wallets.length, 0) %>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Primary Wallets</div>
+                <div class="stat-value" style="color: #f59e0b;">
+                    <%= Object.values(walletsByNetwork).reduce((acc, group) => 
+                        acc + group.wallets.filter(w => w.is_primary).length, 0) %>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Bar -->
+        <div class="card" style="margin-bottom: 24px;">
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <button class="btn btn-primary" onclick="openNetworkModal()">
+                    <i class="fas fa-plus"></i> Add Network
+                </button>
+                <button class="btn btn-outline" onclick="openWalletModal()">
+                    <i class="fas fa-wallet"></i> Add Wallet Address
+                </button>
+            </div>
+        </div>
+
+        <!-- Networks List -->
+        <% networks.forEach(network => { %>
+            <% const group = walletsByNetwork[network.id] || { network: network, wallets: [] }; %>
+            <div class="network-card <%= !network.is_active ? 'network-inactive' : '' %>">
+                <div class="network-header">
+                    <div class="network-icon">
+                        <%= network.symbol.substring(0, 2) %>
+                    </div>
+                    <div class="network-title">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 4px;">
+                            <h3 style="margin: 0; font-size: 18px; font-weight: 600;"><%= network.name %></h3>
+                            <span class="method-badge"><%= network.symbol %></span>
+                            <% if (network.is_active) { %>
+                                <span class="status-badge" style="background: rgba(16, 185, 129, 0.2); color: #10b981;">Active</span>
+                            <% } else { %>
+                                <span class="status-badge" style="background: rgba(239, 68, 68, 0.2); color: #ef4444;">Inactive</span>
+                            <% } %>
+                            <% if (network.chain_id) { %>
+                                <span class="method-badge">Chain ID: <%= network.chain_id %></span>
+                            <% } %>
+                        </div>
+                        <p style="margin: 0; color: var(--text-secondary); font-size: 13px;">
+                            <%= group.wallets.filter(w => w.is_active).length %> active wallets
+                            <% if (network.confirmation_blocks) { %>• <%= network.confirmation_blocks %> confirmations<% } %>
+                            <% if (network.explorer_url) { %>• <a href="<%= network.explorer_url %>" target="_blank" style="color: var(--primary);">Explorer <i class="fas fa-external-link-alt" style="font-size: 10px;"></i></a><% } %>
+                        </p>
+                    </div>
+                    <div class="network-actions">
+                        <button class="btn btn-outline btn-sm" onclick="editNetwork(<%= JSON.stringify(network) %>)">
+                            <i class="fas fa-cog"></i> Settings
+                        </button>
+                        <form method="POST" action="/admin/wallets/network/<%= network.id %>/toggle" style="display: inline;">
+                            <button type="submit" class="btn <%= network.is_active ? 'btn-danger' : 'btn-success' %> btn-sm" 
+                                    onclick="return confirm('<%= network.is_active ? 'Deactivate' : 'Activate' %> this network?')">
+                                <i class="fas fa-power-off"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Wallets Table -->
+                <% if (group.wallets.length > 0) { %>
+                    <table class="wallet-table">
+                        <thead>
+                            <tr>
+                                <th>Address</th>
+                                <th>Label</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Deposits</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% group.wallets.forEach(wallet => { %>
+                                <% const stat = depositStats.find(s => s.wallet_id === wallet.id) || { total_deposits: 0, total_received: 0 }; %>
+                                <tr>
+                                    <td>
+                                        <div class="address-text">
+                                            <%= wallet.address.substring(0, 16) %>...<%= wallet.address.slice(-8) %>
+                                            <button onclick="copyToClipboard('<%= wallet.address %>')" class="btn btn-outline btn-sm" style="padding: 4px 8px;">
+                                                <i class="fas fa-copy"></i>
+                                            </button>
+                                        </div>
+                                        <% if (wallet.memo_tag) { %>
+                                            <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
+                                                <i class="fas fa-tag"></i> Memo: <%= wallet.memo_tag %>
+                                            </div>
+                                        <% } %>
+                                    </td>
+                                    <td>
+                                        <input type="text" 
+                                               value="<%= wallet.label || '' %>" 
+                                               onchange="updateWalletLabel(<%= wallet.id %>, this.value)"
+                                               class="method-badge" 
+                                               style="background: transparent; border: 1px solid var(--border); width: 100%;"
+                                               placeholder="Add label...">
+                                    </td>
+                                    <td>
+                                        <% if (wallet.is_primary) { %>
+                                            <span class="primary-badge"><i class="fas fa-crown"></i> Primary</span>
+                                        <% } else { %>
+                                            <span class="method-badge">Standard</span>
+                                        <% } %>
+                                    </td>
+                                    <td>
+                                        <% if (wallet.is_active) { %>
+                                            <span class="status-badge" style="background: rgba(16, 185, 129, 0.2); color: #10b981;">Active</span>
+                                        <% } else { %>
+                                            <span class="status-badge" style="background: rgba(239, 68, 68, 0.2); color: #ef4444;">Inactive</span>
+                                        <% } %>
+                                    </td>
+                                    <td>
+                                        <div style="font-weight: 600;"><%= stat.total_deposits %> txns</div>
+                                        <div style="font-size: 12px; color: var(--text-secondary);">$<%= parseFloat(stat.total_received).toFixed(2) %></div>
+                                    </td>
+                                    <td>
+                                        <div style="display: flex; gap: 6px;">
+                                            <button onclick="viewHistory(<%= wallet.id %>)" class="btn btn-outline btn-sm" title="View History">
+                                                <i class="fas fa-history"></i>
+                                            </button>
+                                            <button onclick="rotateWallet(<%= wallet.id %>, '<%= wallet.address %>')" class="btn btn-warning btn-sm" title="Rotate Address">
+                                                <i class="fas fa-sync-alt"></i>
+                                            </button>
+                                            <form method="POST" action="/admin/wallets/address/<%= wallet.id %>/update" style="display: inline;">
+                                                <input type="hidden" name="is_active" value="<%= !wallet.is_active %>">
+                                                <button type="submit" class="btn <%= wallet.is_active ? 'btn-danger' : 'btn-success' %> btn-sm" title="<%= wallet.is_active ? 'Deactivate' : 'Activate' %>">
+                                                    <i class="fas <%= wallet.is_active ? 'fa-pause' : 'fa-play' %>"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                <% } else { %>
+                    <div class="empty-state">
+                        <i class="fas fa-wallet" style="color: #8b5cf6;"></i>
+                        <p>No wallet addresses configured</p>
+                        <button onclick="openWalletModal(<%= network.id %>)" class="btn btn-primary btn-sm" style="margin-top: 12px;">
+                            <i class="fas fa-plus"></i> Add First Wallet
+                        </button>
+                    </div>
+                <% } %>
+            </div>
+        <% }); %>
+    </div>
+
+    <!-- WALLETS TAB -->
+    <div id="walletsTab" class="tab-content">
+        <!-- Stats -->
+        <div class="stats-grid-4">
+            <div class="stat-card">
+                <div class="stat-label">Total Addresses</div>
+                <div class="stat-value">
+                    <%= Object.values(walletsByNetwork).reduce((acc, group) => acc + group.wallets.length, 0) %>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Active</div>
+                <div class="stat-value" style="color: var(--success);">
+                    <%= Object.values(walletsByNetwork).reduce((acc, group) => 
+                        acc + group.wallets.filter(w => w.is_active).length, 0) %>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Deposits</div>
+                <div class="stat-value" style="color: #3b82f6;">
+                    <%= depositStats.reduce((acc, s) => acc + parseInt(s.total_deposits), 0) %>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Volume</div>
+                <div class="stat-value" style="color: #8b5cf6;">
+                    $<%= depositStats.reduce((acc, s) => acc + parseFloat(s.total_received), 0).toFixed(2) %>
+                </div>
+            </div>
+        </div>
+
+        <!-- All Wallets Table -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">All Wallet Addresses</h3>
+                <button class="btn btn-primary btn-sm" onclick="openWalletModal()">
+                    <i class="fas fa-plus"></i> Add New
+                </button>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Network</th>
+                            <th>Address</th>
+                            <th>Label</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Total Deposits</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% Object.values(walletsByNetwork).forEach(group => { %>
+                            <% group.wallets.forEach(wallet => { %>
+                                <% const stat = depositStats.find(s => s.wallet_id === wallet.id) || { total_deposits: 0, total_received: 0 }; %>
+                                <tr>
+                                    <td>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <div style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #8b5cf6, #6d28d9); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white;">
+                                                <%= group.network.symbol.substring(0, 2) %>
+                                            </div>
+                                            <span><%= group.network.name %></span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="address-text">
+                                            <%= wallet.address.substring(0, 12) %>...<%= wallet.address.slice(-6) %>
+                                        </div>
+                                    </td>
+                                    <td><%= wallet.label || '-' %></td>
+                                    <td>
+                                        <% if (wallet.is_primary) { %>
+                                            <span class="primary-badge"><i class="fas fa-crown"></i> Primary</span>
+                                        <% } else { %>
+                                            <span class="method-badge">Standard</span>
+                                        <% } %>
+                                    </td>
+                                    <td>
+                                        <% if (wallet.is_active) { %>
+                                            <span class="status-badge status-verified">Active</span>
+                                        <% } else { %>
+                                            <span class="status-badge status-unverified">Inactive</span>
+                                        <% } %>
+                                    </td>
+                                    <td>
+                                        <div style="font-weight: 600;"><%= stat.total_deposits %> txns</div>
+                                        <div style="font-size: 12px; color: var(--text-secondary);">$<%= parseFloat(stat.total_received).toFixed(2) %></div>
+                                    </td>
+                                    <td>
+                                        <div style="display: flex; gap: 6px;">
+                                            <button onclick="viewHistory(<%= wallet.id %>)" class="btn btn-outline btn-sm">
+                                                <i class="fas fa-history"></i>
+                                            </button>
+                                            <button onclick="rotateWallet(<%= wallet.id %>, '<%= wallet.address %>')" class="btn btn-warning btn-sm">
+                                                <i class="fas fa-sync-alt"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Network Modal -->
+<div id="networkModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 style="margin: 0; font-size: 18px; font-weight: 600;"><i class="fas fa-network-wired" style="color: #8b5cf6; margin-right: 8px;"></i> Add New Network</h3>
+            <button onclick="closeNetworkModal()" class="btn btn-outline btn-sm"><i class="fas fa-times"></i></button>
+        </div>
+        <form method="POST" action="/admin/wallets/network/create">
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Network Name</label>
+                        <input type="text" name="name" required placeholder="e.g., Ethereum">
+                    </div>
+                    <div class="form-group">
+                        <label>Symbol</label>
+                        <input type="text" name="symbol" required placeholder="e.g., ETH" style="text-transform: uppercase;">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Chain ID (optional)</label>
+                        <input type="number" name="chain_id" placeholder="e.g., 1">
+                    </div>
+                    <div class="form-group">
+                        <label>Confirmations Required</label>
+                        <input type="number" name="confirmation_blocks" value="12" min="1">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>RPC URL (optional)</label>
+                    <input type="url" name="rpc_url" placeholder="https://...">
+                </div>
+                <div class="form-group">
+                    <label>Explorer URL (optional)</label>
+                    <input type="url" name="explorer_url" placeholder="https://etherscan.io">
+                </div>
+                <div class="form-group">
+                    <label>Sort Order</label>
+                    <input type="number" name="sort_order" value="0" placeholder="0">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeNetworkModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Add Network</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Add Wallet Modal -->
+<div id="walletModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 style="margin: 0; font-size: 18px; font-weight: 600;"><i class="fas fa-wallet" style="color: var(--success); margin-right: 8px;"></i> Add Wallet Address</h3>
+            <button onclick="closeWalletModal()" class="btn btn-outline btn-sm"><i class="fas fa-times"></i></button>
+        </div>
+        <form method="POST" action="/admin/wallets/address/create">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Network</label>
+                    <select name="network_id" id="walletNetworkSelect" required>
+                        <% networks.filter(n => n.is_active).forEach(network => { %>
+                            <option value="<%= network.id %>"><%= network.name %> (<%= network.symbol %>)</option>
+                        <% }); %>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Wallet Address</label>
+                    <input type="text" name="address" required placeholder="0x...">
+                </div>
+                <div class="form-group">
+                    <label>Label (optional)</label>
+                    <input type="text" name="label" placeholder="e.g., Primary Hot Wallet">
+                </div>
+                <div class="form-group">
+                    <label>Memo/Tag (optional)</label>
+                    <input type="text" name="memo_tag" placeholder="Required for XRP, XLM, etc.">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Daily Limit (optional)</label>
+                        <input type="number" name="daily_limit" step="0.00000001" placeholder="No limit">
+                    </div>
+                    <div class="form-group" style="display: flex; align-items: flex-end;">
+                        <label class="checkbox-wrapper" style="padding-bottom: 12px;">
+                            <input type="checkbox" name="is_primary">
+                            <span>Set as Primary Address</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeWalletModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Add Wallet</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Network Modal -->
+<div id="editNetworkModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 style="margin: 0; font-size: 18px; font-weight: 600;"><i class="fas fa-cog" style="color: #8b5cf6; margin-right: 8px;"></i> Edit Network</h3>
+            <button onclick="closeEditNetworkModal()" class="btn btn-outline btn-sm"><i class="fas fa-times"></i></button>
+        </div>
+        <form method="POST" id="editNetworkForm" action="">
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Network Name</label>
+                        <input type="text" name="name" id="editNetworkName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Symbol</label>
+                        <input type="text" name="symbol" id="editNetworkSymbol" required style="text-transform: uppercase;">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Chain ID</label>
+                        <input type="number" name="chain_id" id="editNetworkChainId">
+                    </div>
+                    <div class="form-group">
+                        <label>Confirmations</label>
+                        <input type="number" name="confirmation_blocks" id="editNetworkConfirmations" min="1">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>RPC URL</label>
+                    <input type="url" name="rpc_url" id="editNetworkRpc">
+                </div>
+                <div class="form-group">
+                    <label>Explorer URL</label>
+                    <input type="url" name="explorer_url" id="editNetworkExplorer">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Sort Order</label>
+                        <input type="number" name="sort_order" id="editNetworkSort">
+                    </div>
+                    <div class="form-group" style="display: flex; align-items: flex-end;">
+                        <label class="checkbox-wrapper" style="padding-bottom: 12px;">
+                            <input type="checkbox" name="is_active" id="editNetworkActive" value="1">
+                            <span>Network Active</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeEditNetworkModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Rotate Wallet Modal -->
+<div id="rotateModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 style="margin: 0; font-size: 18px; font-weight: 600;"><i class="fas fa-sync-alt" style="color: #f59e0b; margin-right: 8px;"></i> Rotate Wallet Address</h3>
+            <button onclick="closeRotateModal()" class="btn btn-outline btn-sm"><i class="fas fa-times"></i></button>
+        </div>
+        <form method="POST" id="rotateForm" action="">
+            <div class="modal-body">
+                <div class="alert alert-warning" style="margin-bottom: 20px;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Warning:</strong> Rotating will deactivate the old address. Any funds sent to the old address after rotation may be lost.
+                </div>
+                <div class="form-group">
+                    <label>Current Address</label>
+                    <input type="text" id="currentRotateAddress" readonly style="background: var(--secondary-bg); opacity: 0.7;">
+                </div>
+                <div class="form-group">
+                    <label>New Address</label>
+                    <input type="text" name="new_address" required placeholder="Enter new wallet address">
+                </div>
+                <div class="form-group">
+                    <label>Rotation Reason</label>
+                    <textarea name="reason" rows="3" placeholder="e.g., Security rotation, compromised key, routine maintenance..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeRotateModal()">Cancel</button>
+                <button type="submit" class="btn btn-warning">Rotate Address</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- History Modal -->
+<div id="historyModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-header">
+            <div>
+                <h3 style="margin: 0; font-size: 18px; font-weight: 600;"><i class="fas fa-history" style="color: #3b82f6; margin-right: 8px;"></i> Wallet History</h3>
+                <p style="margin: 4px 0 0; font-size: 13px; color: var(--text-secondary);" id="historyWalletInfo"></p>
+            </div>
+            <button onclick="closeHistoryModal()" class="btn btn-outline btn-sm"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body" id="historyContent">
+            <!-- Content loaded dynamically -->
+        </div>
+    </div>
+</div>
+
+<script>
+function showTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    document.getElementById(tabName + 'Tab').classList.add('active');
+    event.target.classList.add('active');
+}
+
+// Modal Functions
+function openNetworkModal() {
+    document.getElementById('networkModal').classList.add('active');
+}
+
+function closeNetworkModal() {
+    document.getElementById('networkModal').classList.remove('active');
+}
+
+function openWalletModal(networkId = null) {
+    document.getElementById('walletModal').classList.add('active');
+    if (networkId) {
+        document.getElementById('walletNetworkSelect').value = networkId;
+    }
+}
+
+function closeWalletModal() {
+    document.getElementById('walletModal').classList.remove('active');
+}
+
+function editNetwork(network) {
+    document.getElementById('editNetworkForm').action = `/admin/wallets/network/${network.id}/update`;
+    document.getElementById('editNetworkName').value = network.name;
+    document.getElementById('editNetworkSymbol').value = network.symbol;
+    document.getElementById('editNetworkChainId').value = network.chain_id || '';
+    document.getElementById('editNetworkRpc').value = network.rpc_url || '';
+    document.getElementById('editNetworkExplorer').value = network.explorer_url || '';
+    document.getElementById('editNetworkConfirmations').value = network.confirmation_blocks;
+    document.getElementById('editNetworkSort').value = network.sort_order;
+    document.getElementById('editNetworkActive').checked = network.is_active;
+    
+    document.getElementById('editNetworkModal').classList.add('active');
+}
+
+function closeEditNetworkModal() {
+    document.getElementById('editNetworkModal').classList.remove('active');
+}
+
+function rotateWallet(id, address) {
+    document.getElementById('rotateForm').action = `/admin/wallets/address/${id}/rotate`;
+    document.getElementById('currentRotateAddress').value = address;
+    document.getElementById('rotateModal').classList.add('active');
+}
+
+function closeRotateModal() {
+    document.getElementById('rotateModal').classList.remove('active');
+}
+
+async function viewHistory(walletId) {
+    try {
+        const response = await fetch(`/admin/wallets/address/${walletId}/history`);
+        const data = await response.json();
+        
+        document.getElementById('historyWalletInfo').textContent = 
+            `${data.wallet.network_name} — ${data.wallet.address.substring(0, 20)}...${data.wallet.address.slice(-6)}`;
+        
+        let html = '';
+        if (data.transactions.length === 0) {
+            html = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No transactions found for this wallet</p></div>';
+        } else {
+            html = `
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>User</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            data.transactions.forEach(tx => {
+                const date = new Date(tx.created_at).toLocaleString();
+                html += `
+                    <tr>
+                        <td>${date}</td>
+                        <td>${tx.username}</td>
+                        <td class="balance-display" style="color: #10b981;">+$${parseFloat(tx.amount).toFixed(2)}</td>
+                        <td><span class="status-badge status-verified">${tx.status}</span></td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+        }
+        
+        document.getElementById('historyContent').innerHTML = html;
+        document.getElementById('historyModal').classList.add('active');
+        
+    } catch (error) {
+        alert('Failed to load wallet history');
+    }
+}
+
+function closeHistoryModal() {
+    document.getElementById('historyModal').classList.remove('active');
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        // Show toast
+        const toast = document.createElement('div');
+        toast.className = 'alert alert-success';
+        toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 9999; animation: slideIn 0.3s ease;';
+        toast.innerHTML = '<i class="fas fa-check-circle"></i> Address copied to clipboard';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    });
+}
+
+async function updateWalletLabel(walletId, label) {
+    try {
+        const response = await fetch(`/admin/wallets/address/${walletId}/update`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `label=${encodeURIComponent(label)}`
+        });
+        if (!response.ok) throw new Error('Failed to update');
+        
+        const toast = document.createElement('div');
+        toast.className = 'alert alert-success';
+        toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 9999;';
+        toast.innerHTML = '<i class="fas fa-check-circle"></i> Label updated';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2000);
+        
+    } catch (error) {
+        alert('Failed to update label');
+    }
+}
+
+// Close modals on outside click
+document.querySelectorAll('.modal-overlay').forEach(modal => {
+    modal.addEventListener('click', function(e) {
+        if (e.target === this) {
+            this.classList.remove('active');
+        }
+    });
+});
+
+// Add slideIn animation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+`;
+document.head.appendChild(style);
+</script>
+
+<%- include('../partials/footer') %>

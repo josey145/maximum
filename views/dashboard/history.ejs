@@ -1,0 +1,50 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<style>
+    .history-card { background-color: #111118; border: 1px solid #1e1e2e; border-radius: 16px; margin-top: 24px; overflow-x: auto; }
+    .history-table { width: 100%; border-collapse: collapse; color: #f4f4f5; }
+    .history-table th { background-color: rgba(139, 92, 246, 0.05); padding: 16px; text-align: left; font-size: 12px; color: #a1a1aa; text-transform: uppercase; }
+    .history-table td { padding: 16px; border-bottom: 1px solid #1e1e2e; font-size: 14px; }
+    .status-badge { padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; display: inline-block; }
+    .status-pending { background-color: rgba(250, 204, 21, 0.1); color: #facc15; }
+    .status-completed { background-color: rgba(34, 197, 94, 0.1); color: #22c55e; }
+</style>
+
+<div class="dashboard-container" style="max-width: 1000px; margin: 0 auto; padding: 40px 20px;">
+    <h2 style="color: #ffffff;">Transaction History</h2>
+    <div class="history-card">
+        <table class="history-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Method</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (typeof transactions !== 'undefined' && transactions.length > 0) { %>
+                    <% transactions.forEach(tx => { %>
+                        <tr>
+                            <td><%= new Date(tx.created_at).toLocaleDateString() %></td>
+                            <td style="text-transform: capitalize;"><%= tx.type %></td>
+                            <td><%= tx.payment_method %></td>
+                            <td class="<%= tx.type === 'withdrawal' ? 'amount-withdraw' : 'amount-deposit' %>">
+                                <%= tx.type === 'withdrawal' ? '-' : '+' %><%= tx.amount %>
+                            </td>
+                            <td>
+                                <span class="status-badge status-<%= tx.status %>"><%= tx.status %></span>
+                            </td>
+                        </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr><td colspan="5" style="text-align: center; padding: 48px; color: #a1a1aa;">No records found.</td></tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

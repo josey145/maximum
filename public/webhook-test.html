@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Webhook Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        .success { color: green; }
+        .error { color: red; }
+        pre { background: #f4f4f4; padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🔔 Webhook Test Page</h1>
+    <p>URL: <code id="url"></code></p>
+    
+    <h3>Test Single Pair</h3>
+    <button onclick="sendTest('EURUSD')">Test EURUSD</button>
+    <button onclick="sendTest('GBPUSD')">Test GBPUSD</button>
+    <button onclick="sendTest('USDJPY')">Test USDJPY</button>
+    
+    <h3>Auto Simulation</h3>
+    <button onclick="startAuto()">Start Auto-Send</button>
+    <button onclick="stopAuto()">Stop</button>
+    
+    <h3>Results</h3>
+    <div id="results"></div>
+
+    <script>
+        const URL = window.location.origin + '/webhook/tradingview';
+        document.getElementById('url').textContent = URL;
+        
+        let autoInterval = null;
+        
+        async function sendTest(symbol) {
+            const payload = {
+                symbol: symbol,
+                price: {
+                    bid: 1.08500 + (Math.random() * 0.001),
+                    ask: 1.08520 + (Math.random() * 0.001)
+                },
+                timestamp: new Date().toISOString()
+            };
+            
+            try {
+                const res = await fetch(URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await res.json();
+                log(`✅ ${symbol}: ${res.ok ? 'OK' : 'FAIL'}`, res.ok ? 'success' : 'error');
+                
+            } catch (err) {
+                log(`❌ ${symbol}: ${err.message}`, 'error');
+            }
+        }
+        
+        function startAuto() {
+            if (autoInterval) return;
+            const pairs = ['EURUSD', 'GBPUSD', 'USDJPY'];
+            let i = 0;
+            
+            autoInterval = setInterval(() => {
+                sendTest(pairs[i % pairs.length]);
+                i++;
+            }, 2000);
+            
+            log('▶️ Auto simulation started', 'success');
+        }
+        
+        function stopAuto() {
+            clearInterval(autoInterval);
+            autoInterval = null;
+            log('⏹️ Auto simulation stopped');
+        }
+        
+        function log(msg, className = '') {
+            const div = document.createElement('div');
+            div.className = className;
+            div.textContent = new Date().toLocaleTimeString() + ' ' + msg;
+            document.getElementById('results').prepend(div);
+        }
+    </script>
+</body>
+</html>

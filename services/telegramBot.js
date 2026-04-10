@@ -5,85 +5,121 @@ class TelegramService {
     constructor() {
         const token = process.env.TELEGRAM_BOT_TOKEN;
         this.chatId = String(process.env.TELEGRAM_CHAT_ID || '').trim();
-        this.enabled = !!(token && token.length > 20 && token.includes(':') && this.chatId);
+        this.appUrl = String(process.env.APP_URL || 'http://localhost:3000').trim();
 
-        console.log('🔍 TelegramService constructor running...');
-        console.log('   TOKEN:', token ? token.substring(0, 10) + '...' : 'UNDEFINED');
-        console.log('   CHAT ID:', this.chatId || 'UNDEFINED');
+        console.log('🔍 Admin Telegram Bot initializing...');
+        console.log('   Chat ID:', this.chatId);
         
-        this.enabled = !!(token && token.length > 20 && token.includes(':') && this.chatId);
-        console.log('   ENABLED:', this.enabled); // ← THIS IS THE KEY LINE
+        this.enabled = !!(token && token.includes(':') && this.chatId);
 
         if (this.enabled) {
             try {
                 this.bot = new TelegramBot(token, { polling: false });
-                console.log('✅ Telegram bot initialized (send-only mode)');
+                console.log('✅ Admin bot initialized');
             } catch (error) {
-                console.error('❌ Telegram init failed:', error.message);
+                console.error('❌ Admin bot init failed:', error.message);
                 this.enabled = false;
             }
         } else {
-            console.log('⚠️ Telegram bot DISABLED — check .env values');
-            console.log('   Token exists:', !!token);
-            console.log('   Chat ID:', this.chatId);
+            console.log('⚠️ Admin bot DISABLED');
         }
     }
 
     async sendMessage(message) {
         if (!this.enabled) {
-            console.log('❌ Telegram disabled, skipping');
-            return;
+            console.log('⚠️ Admin bot disabled, message not sent');
+            return false;
         }
+        
         try {
-            // ✅ Use HTML instead of Markdown — underscores in names/emails won't break it
-            const result = await this.bot.sendMessage(this.chatId, message, { parse_mode: 'HTML' });
-            console.log('✅ Telegram sent! Message ID:', result.message_id);
+            await this.bot.sendMessage(this.chatId, message, { 
+                parse_mode: 'HTML',
+                disable_web_page_preview: true 
+            });
+            console.log('✅ Admin notification sent');
+            return true;
         } catch (error) {
-            console.error('❌ Telegram send failed:', error.code, error.message);
-            // ✅ If HTML fails too, retry as plain text
-            try {
-                await this.bot.sendMessage(this.chatId, message.replace(/<[^>]*>/g, ''));
-                console.log('✅ Sent as plain text fallback');
-            } catch (e) {
-                console.error('❌ Plain text also failed:', e.message);
-            }
+            console.error('❌ Admin bot send failed:', error.message);
+            return false;
         }
     }
 
- 
+    // ========== ADMIN NOTIFICATIONS ONLY ==========
 
-    // Replace just the notifyNewRegistration method in your telegramBot.js with this:
+    async notifyLogin(userData) {
+        const msg = `
+🔑 <b>User Login</b>
+👤 <b>User:</b> ${userData.username}
+📧 <b>Email:</b> ${userData.email}
+🎭 <b>Role:</b> ${userData.role?.toUpperCase() || 'USER'}
+🌍 <b>IP:</b> ${userData.ip || 'N/A'}
+⏰ <b>Time:</b> ${new Date().toLocaleString()}
+🔗 <a href="${this.appUrl}/admin">Open Admin</a>
+        `.trim();
+        return await this.sendMessage(msg);
+    }
 
-async notifyNewRegistration(userData) {
-    console.log('📱 notifyNewRegistration called:', userData.username);
-    const message = `
-🎉 <b>NEW USER REGISTRATION</b>
+    async notifyNewRegistration(userData) {
+        const msg = `
+🎉 <b>NEW REGISTRATION</b>
+👤 <b>Username:</b> ${userData.username}
+📧 <b>Email:</b> ${userData.email}
+🆔 <b>ID:</b> ${userData.userId}
+📍 <b>Country:</b> ${userData.country || 'N/A'}
+👥 <b>Total Users:</b> ${userData.totalUsers || 'N/A'}
+⏰ <b>Time:</b> ${new Date().toLocaleString()}
+        `.trim();
+        return await this.sendMessage(msg);
+    }
 
-👤 Username: ${userData.username}
-📧 Email: ${userData.email}
-📞 Phone: ${userData.phone || 'N/A'}
-🎂 DOB: ${userData.dob || 'N/A'}
-💱 Currency: ${userData.currency || 'N/A'}
-🆔 User ID: ${userData.userId}
+    async notifyAdminAction(action, details = {}) {
+        const msg = `
+🔧 <b>Admin Action: ${action}</b>
+👤 <b>Admin:</b> ${details.admin || 'N/A'}
+🎯 <b>Target:</b> ${details.targetUser || details.targetUserId || 'N/A'}
+${details.amount ? `💰 <b>Amount:</b> $${details.amount}` : ''}
+${details.code ? `🔢 <b>Code:</b> <code>${details.code}</code>` : ''}
+${details.mode ? `⚙️ <b>Mode:</b> ${details.mode}` : ''}
+⏰ <b>Time:</b> ${new Date().toLocaleString()}
+🔗 <a href="${this.appUrl}/admin">Open Admin</a>
+        `.trim().replace(/\n{2,}/g, '\n');
+        return await this.sendMessage(msg);
+    }
 
-📍 <b>Location</b>
-🌍 Country: ${userData.country || 'N/A'}
-🗺 State: ${userData.state || 'N/A'}
-🏙 City: ${userData.city || 'N/A'}
-🏠 Address: ${userData.address || 'N/A'}
+    async notifyAdminAction(action, details) {
+    try {
+        if (!this.bot || !this.adminChatId) {
+            console.log('Telegram bot not configured, skipping notification');
+            return;
+        }
 
-🪪 <b>ID Verification</b>
-📋 ID Type: ${userData.idType || 'N/A'}
-🔢 ID Number: ${userData.idNumber || 'N/A'}
-📄 Front: ${userData.idFront || '❌ Not uploaded'}
-📄 Back: ${userData.idBack || 'Not provided'}
+        const timestamp = new Date().toISOString();
+        
+        let message = `🔔 *Admin Action: ${action}*\n\n`;
+        message += `⏰ ${timestamp}\n`;
+        
+        for (const [key, value] of Object.entries(details)) {
+            message += `• *${key}:* ${value}\n`;
+        }
 
-🌐 IP: ${userData.ip || 'Unknown'}
-👥 Total Users: ${userData.totalUsers}
-🕐 Time: ${new Date().toLocaleString()}
-    `.trim();
-    await this.sendMessage(message);
+        await this.bot.sendMessage(this.adminChatId, message, { parse_mode: 'Markdown' });
+    } catch (error) {
+        console.error('Failed to send Telegram notification:', error);
+    }
 }
+
+    // Withdraw code generation notification TO ADMIN
+    async notifyWithdrawCodeGenerated(username, code, adminName) {
+        const msg = `
+🔐 <b>Withdrawal Code Generated</b>
+👤 <b>User:</b> ${username}
+🔢 <b>Code:</b> <code>${code}</code>
+⚙️ <b>Generated by:</b> ${adminName || 'System'}
+⏰ <b>Time:</b> ${new Date().toLocaleString()}
+⚠️ Give this code to the user securely.
+        `.trim();
+        return await this.sendMessage(msg);
+    }
 }
 
 module.exports = new TelegramService();

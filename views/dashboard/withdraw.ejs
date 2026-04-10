@@ -1,0 +1,265 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<link rel="stylesheet" href="../../css/withdraw.css">
+
+
+// ── Currency helpers ──────────────────────────────────────────────────────────
+<%
+// ── Currency helpers ──────────────────────────────────────────────────────────
+const dc = (typeof currency !== 'undefined' ? currency : 'USD');
+// or if you meant to use balanceCurrency:
+// const dc = (typeof balanceCurrency !== 'undefined' ? balanceCurrency : 'USD');
+
+const SYMBOLS = {
+    USD:'$', EUR:'€', GBP:'£', JPY:'¥', CHF:'Fr', CAD:'C$', AUD:'A$',
+    CNY:'¥', INR:'₹', KRW:'₩', SGD:'S$', HKD:'HK$', MYR:'RM', IDR:'Rp',
+    THB:'฿', PHP:'₱', VND:'₫', PKR:'₨', BDT:'৳', AED:'د.إ', SAR:'﷼',
+    QAR:'QR', KWD:'KD', BHD:'BD', OMR:'OMR', JOD:'JD', TRY:'₺', ILS:'₪',
+    NGN:'₦', GHS:'₵', KES:'KSh', ZAR:'R', EGP:'E£', MAD:'MAD', TZS:'TSh',
+    UGX:'USh', ETB:'Br', XOF:'CFA', BRL:'R$', MXN:'$', ARS:'$', COP:'$',
+    CLP:'$', NOK:'kr', SEK:'kr', DKK:'kr', PLN:'zł', CZK:'Kč', HUF:'Ft',
+    RON:'lei', RUB:'₽', UAH:'₴'
+};
+const sym = SYMBOLS[dc] || (dc + ' ');
+%>
+
+
+<div class="withdraw-container">
+    <div class="page-header">
+        <h2 class="page-title">Withdraw Funds</h2>
+        <p class="page-subtitle">Securely transfer funds to your preferred account</p>
+    </div>
+
+    <!-- Flash messages -->
+    <% if (messages && messages.error && messages.error.length > 0) { %>
+        <div class="flash-msg error"><i class="fas fa-exclamation-circle"></i> <%= messages.error[0] %></div>
+    <% } %>
+    <% if (messages && messages.success && messages.success.length > 0) { %>
+        <div class="flash-msg success"><i class="fas fa-check-circle"></i> <%= messages.success[0] %></div>
+    <% } %>
+
+    <div class="withdraw-card">
+
+        <!-- Balance -->
+        <div class="balance-preview">
+            <div>
+                <div class="preview-label">Available for withdrawal</div>
+                <div class="preview-value"><%= balanceFormatted %></div>
+            </div>
+            <div style="text-align:right;">
+                <div class="preview-currency"><%= dc %></div>
+                <div style="font-size:11px;color:#3f3f5a;margin-top:2px;">Account Balance</div>
+            </div>
+        </div>
+
+        <form action="/transactions/withdraw/submit" method="POST" id="withdrawForm">
+
+            <!-- Amount -->
+            <div class="form-group">
+                <label><i class="fas fa-coins"></i> Amount (USD)</label>
+                <div class="amount-wrapper">
+                    <span class="amount-prefix">$</span>
+                    <input type="number" name="amount" id="withdrawAmount"
+                           placeholder="0.00" step="0.01" min="1"
+                           max="<%= parseFloat(balance || 0).toFixed(2) %>"
+                           required>
+                </div>
+                <div class="amount-hint">
+                    <span>Enter amount in USD</span>
+                    <% if (dc !== 'USD') { %>
+                        <span class="converted" id="convertedDisplay">≈ loading...</span>
+                    <% } %>
+                </div>
+            </div>
+
+            <!-- Method -->
+            <div class="form-group">
+                <label><i class="fas fa-university"></i> Withdrawal Method</label>
+                <select name="payment_method" id="methodSelect" required>
+                    <option value="" disabled selected>— Select Method —</option>
+
+                    <% if (cryptoOptions && cryptoOptions.length > 0) { %>
+                        <optgroup label="Cryptocurrency (Fastest)">
+                            <% cryptoOptions.forEach(c => { %>
+                                <option value="crypto" data-crypto="<%= c.symbol %>">
+                                    <%= c.symbol %> (<%= c.network %>)
+                                </option>
+                            <% }) %>
+                        </optgroup>
+                    <% } else { %>
+                        <optgroup label="Cryptocurrency">
+                            <option value="crypto" data-crypto="BTC">Bitcoin (BTC)</option>
+                            <option value="crypto" data-crypto="ETH">Ethereum (ETH)</option>
+                            <option value="crypto" data-crypto="USDT">USDT (TRC20)</option>
+                        </optgroup>
+                    <% } %>
+
+                    <optgroup label="Middle East Banks">
+                        <option value="bank">Al Rajhi Bank (KSA)</option>
+                        <option value="bank">SNB / AlAhli (KSA)</option>
+                        <option value="bank">Riyad Bank (KSA)</option>
+                        <option value="bank">Emirates NBD (UAE)</option>
+                        <option value="bank">ADCB (UAE)</option>
+                        <option value="bank">BenefitPay (Bahrain)</option>
+                    </optgroup>
+                    <optgroup label="Indian Banks">
+                        <option value="bank">State Bank of India (SBI)</option>
+                        <option value="bank">HDFC Bank</option>
+                        <option value="bank">ICICI Bank</option>
+                        <option value="bank">Axis Bank</option>
+                        <option value="bank">UPI / Paytm / PhonePe</option>
+                    </optgroup>
+                    <optgroup label="African Banks & Wallets">
+                        <option value="bank">GTBank (Nigeria)</option>
+                        <option value="bank">Access Bank (Nigeria)</option>
+                        <option value="bank">Zenith Bank (Nigeria)</option>
+                        <option value="bank">M-Pesa (Kenya)</option>
+                        <option value="bank">MTN Mobile Money</option>
+                        <option value="bank">GCash (Philippines)</option>
+                        <option value="bank">Maya (Philippines)</option>
+                    </optgroup>
+                    <optgroup label="Global Digital Wallets">
+                        <option value="bank">PayPal</option>
+                        <option value="bank">CashApp</option>
+                        <option value="bank">Wise</option>
+                        <option value="bank">Zelle</option>
+                        <option value="bank">Revolut</option>
+                    </optgroup>
+                </select>
+                <div class="method-hint" id="methodHint"></div>
+            </div>
+
+            <!-- Hidden crypto type field (set by JS) -->
+            <input type="hidden" name="crypto_type" id="cryptoTypeInput" value="">
+
+            <!-- Account Details -->
+            <div class="form-group">
+                <label id="accountLabel"><i class="fas fa-address-card"></i> Account Details</label>
+                <textarea name="wallet_address" id="accountInput" rows="3"
+                          placeholder="Enter wallet address or bank details..."
+                          required></textarea>
+            </div>
+
+            <div class="divider"></div>
+
+            <button type="submit" class="submit-btn">
+                <i class="fas fa-paper-plane"></i> Submit Withdrawal
+            </button>
+
+        </form>
+
+        <div class="warning-note">
+            <i class="fas fa-exclamation-triangle" style="margin-top:1px;flex-shrink:0;"></i>
+            <span>
+                Withdrawals are reviewed by our team and typically processed within 1–3 business days.
+                Ensure all details are correct — we cannot reverse a completed transfer.
+            </span>
+        </div>
+
+    </div>
+</div>
+
+<script>
+const USER_CURRENCY   = '<%= dc %>';
+const USER_BALANCE    = <%= parseFloat(balance || 0) %>;
+const CURRENCY_SYMBOL = '<%= sym %>';
+
+// ── Live rate for preview (USD → user's currency) ─────────────────────────
+let usdToUserRate = null;
+
+(async function () {
+    if (USER_CURRENCY === 'USD') { usdToUserRate = 1; return; }
+    try {
+        const res  = await fetch('/api/rate?from=USD&to=' + USER_CURRENCY);
+        const data = await res.json();
+        if (data && data.rate) {
+            usdToUserRate = parseFloat(data.rate);
+            updateConvertedDisplay();
+        }
+    } catch (e) {
+        console.warn('Could not fetch live rate for preview:', e);
+    }
+})();
+
+// ── Amount input → converted display ─────────────────────────────────────
+const withdrawAmountEl  = document.getElementById('withdrawAmount');
+const convertedDisplay  = document.getElementById('convertedDisplay');
+
+function updateConvertedDisplay() {
+    if (!convertedDisplay) return;
+    const usd = parseFloat(withdrawAmountEl?.value) || 0;
+    if (!usdToUserRate || usd <= 0) {
+        convertedDisplay.textContent = '≈ —';
+        return;
+    }
+    const converted = usd * usdToUserRate;
+    convertedDisplay.textContent = '≈ ' + CURRENCY_SYMBOL
+        + converted.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+        + ' ' + USER_CURRENCY + ' (deducted from balance)';
+}
+
+withdrawAmountEl?.addEventListener('input', updateConvertedDisplay);
+
+// ── Method select → update labels / hints ─────────────────────────────────
+const methodSelect    = document.getElementById('methodSelect');
+const accountLabel    = document.getElementById('accountLabel');
+const accountInput    = document.getElementById('accountInput');
+const methodHint      = document.getElementById('methodHint');
+const cryptoTypeInput = document.getElementById('cryptoTypeInput');
+
+methodSelect.addEventListener('change', function () {
+    const opt        = this.options[this.selectedIndex];
+    const isCrypto   = this.value === 'crypto';
+    const cryptoCode = opt.getAttribute('data-crypto') || '';
+    const label      = opt.text.trim();
+
+    // Set hidden crypto_type field
+    cryptoTypeInput.value = isCrypto ? cryptoCode : '';
+
+    if (isCrypto) {
+        accountLabel.innerHTML      = `<i class="fas fa-wallet"></i> ${label} Wallet Address`;
+        accountInput.placeholder    = `Paste your ${label} wallet address here...`;
+        methodHint.textContent      = 'Ensure the network matches your wallet (e.g. USDT must be TRC20).';
+        methodHint.style.color      = '#f59e0b';
+    } else {
+        accountLabel.innerHTML      = `<i class="fas fa-university"></i> Account Details — ${label}`;
+        accountInput.placeholder    = 'Full Name:\nAccount Number / IBAN:\nBank Name:\nBranch (if required):';
+        methodHint.textContent      = 'Bank transfers take 1–3 business days to process.';
+        methodHint.style.color      = '#8b5cf6';
+    }
+});
+
+// ── Form validation ────────────────────────────────────────────────────────
+document.getElementById('withdrawForm').addEventListener('submit', function (e) {
+    const method = methodSelect.value;
+    if (!method) {
+        e.preventDefault();
+        alert('Please select a withdrawal method.');
+        return;
+    }
+
+    const usd = parseFloat(withdrawAmountEl.value);
+    if (!usd || usd <= 0) {
+        e.preventDefault();
+        alert('Please enter a valid amount.');
+        return;
+    }
+
+    // Warn if user_currency != USD and we have rate info
+    if (usdToUserRate && USER_CURRENCY !== 'USD') {
+        const deduct = usd * usdToUserRate;
+        if (deduct > USER_BALANCE) {
+            e.preventDefault();
+            alert('Insufficient balance. Your balance is '
+                + CURRENCY_SYMBOL + USER_BALANCE.toLocaleString('en-US', { minimumFractionDigits: 2 })
+                + ' ' + USER_CURRENCY
+                + ' but this withdrawal requires '
+                + CURRENCY_SYMBOL + deduct.toLocaleString('en-US', { minimumFractionDigits: 2 })
+                + ' ' + USER_CURRENCY + '.'
+            );
+        }
+    }
+});
+</script>
+
+<%- include('../partials/footer') %>

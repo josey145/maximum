@@ -1,0 +1,182 @@
+<!-- views/profile/edit.ejs -->
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<style>
+  .edit-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 24px 16px;
+  }
+
+  .edit-card {
+    background: #111118;
+    border: 1px solid #1e1e2e;
+    border-radius: 20px;
+    padding: 32px;
+  }
+
+  .edit-header {
+    margin-bottom: 24px;
+  }
+
+  .edit-header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #f4f4f5;
+    margin-bottom: 4px;
+  }
+
+  .edit-header p {
+    color: #52525b;
+    font-size: 14px;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #a1a1aa;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+
+  .form-input {
+    width: 100%;
+    background: #0d0d14;
+    border: 1px solid #1e1e2e;
+    border-radius: 12px;
+    padding: 14px 16px;
+    color: #f4f4f5;
+    font-size: 15px;
+    transition: all 0.2s;
+    box-sizing: border-box;
+  }
+
+  .form-input:focus {
+    outline: none;
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 3px rgba(139,92,246,0.15);
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .btn-save {
+    width: 100%;
+    padding: 16px;
+    background: #8b5cf6;
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 8px;
+  }
+
+  .btn-save:hover {
+    background: #7c3aed;
+    transform: translateY(-1px);
+  }
+
+  @media (max-width: 480px) {
+    .form-row { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="edit-container">
+  <div class="edit-card">
+    <div class="edit-header">
+      <h1>Edit Profile</h1>
+      <p>Update your personal information</p>
+    </div>
+
+    <form action="/profile/update" method="POST">
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <input type="text" class="form-input" value="<%= user.username %>" readonly disabled>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-input" value="<%= user.email %>" readonly disabled>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Phone Number</label>
+        <input type="tel" name="phone" class="form-input" value="<%= user.phone || '' %>" placeholder="+1 234 567 8900">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Date of Birth</label>
+        <input type="date" name="dob" class="form-input" value="<%= user.dob || '' %>">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Country</label>
+        <select name="country" class="form-input">
+          <option value="">Select country</option>
+          <option value="US" <%= user.country === 'US' ? 'selected' : '' %>>United States</option>
+          <option value="GB" <%= user.country === 'GB' ? 'selected' : '' %>>United Kingdom</option>
+          <option value="NG" <%= user.country === 'NG' ? 'selected' : '' %>>Nigeria</option>
+          <option value="GH" <%= user.country === 'GH' ? 'selected' : '' %>>Ghana</option>
+          <option value="KE" <%= user.country === 'KE' ? 'selected' : '' %>>Kenya</option>
+          <option value="ZA" <%= user.country === 'ZA' ? 'selected' : '' %>>South Africa</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">City</label>
+          <input type="text" name="city" class="form-input" value="<%= user.city || '' %>" placeholder="City">
+        </div>
+        <div class="form-group">
+          <label class="form-label">State/Region</label>
+          <input type="text" name="state" class="form-input" value="<%= user.state || '' %>" placeholder="State">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">ZIP Code</label>
+        <input type="text" name="zip" class="form-input" value="<%= user.zip || '' %>" placeholder="ZIP">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Address</label>
+        <input type="text" name="address" class="form-input" value="<%= user.address || '' %>" placeholder="Street address">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Preferred Currency</label>
+        <select name="currency" class="form-input">
+          <option value="USD" <%= user.currency === 'USD' ? 'selected' : '' %>>USD ($) - US Dollar</option>
+          <option value="EUR" <%= user.currency === 'EUR' ? 'selected' : '' %>>EUR (€) - Euro</option>
+          <option value="GBP" <%= user.currency === 'GBP' ? 'selected' : '' %>>GBP (£) - British Pound</option>
+          <option value="NGN" <%= user.currency === 'NGN' ? 'selected' : '' %>>NGN (₦) - Nigerian Naira</option>
+          <option value="GHS" <%= user.currency === 'GHS' ? 'selected' : '' %>>GHS (₵) - Ghana Cedi</option>
+          <option value="KES" <%= user.currency === 'KES' ? 'selected' : '' %>>KES (KSh) - Kenyan Shilling</option>
+          <option value="ZAR" <%= user.currency === 'ZAR' ? 'selected' : '' %>>ZAR (R) - South African Rand</option>
+          <option value="JPY" <%= user.currency === 'JPY' ? 'selected' : '' %>>JPY (¥) - Japanese Yen</option>
+          <option value="BTC" <%= user.currency === 'BTC' ? 'selected' : '' %>>BTC (₿) - Bitcoin</option>
+          <option value="ETH" <%= user.currency === 'ETH' ? 'selected' : '' %>>ETH (Ξ) - Ethereum</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn-save">
+        <i class="fas fa-save"></i> Save Changes
+      </button>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

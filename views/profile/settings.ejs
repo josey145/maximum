@@ -1,0 +1,206 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="dashboard">
+    <div class="dashboard-header" style="display: flex; align-items: center; gap: 16px;">
+        <a href="/profile" style="color: #8b5cf6; text-decoration: none;">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <div>
+            <h1 class="dashboard-title">Account Settings</h1>
+            <p style="color: var(--text-secondary);">Manage your profile, currency and security</p>
+        </div>
+    </div>
+
+    <!-- Flash Messages -->
+    <% if (success_msg && success_msg.length > 0) { %>
+        <div class="alert alert-success"><i class="fas fa-check-circle"></i> <%= success_msg %></div>
+    <% } %>
+    <% if (error_msg && error_msg.length > 0) { %>
+        <div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> <%= error_msg %></div>
+    <% } %>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+
+        <!-- ── Personal Information ── -->
+        <div class="card" style="grid-column: span 2;">
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 24px; color: #f4f4f5;">
+                <i class="fas fa-user" style="color: #8b5cf6;"></i> Personal Information
+            </h3>
+            <form action="/profile/update" method="POST">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group">
+                        <label class="form-label">Username</label>
+                        <input class="form-input" value="<%= user.username %>" disabled
+                               style="opacity: 0.5; cursor: not-allowed;">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input class="form-input" value="<%= user.email %>" disabled
+                               style="opacity: 0.5; cursor: not-allowed;">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone Number</label>
+                        <input type="tel" name="phone" class="form-input"
+                               value="<%= user.phone || '' %>" placeholder="+1 234 567 8900">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Date of Birth</label>
+                        <input type="date" name="dob" class="form-input"
+                               value="<%= user.dob ? new Date(user.dob).toISOString().split('T')[0] : '' %>">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Country</label>
+                        <input type="text" name="country" class="form-input"
+                               value="<%= user.country || '' %>" placeholder="e.g. United States">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">State / Province</label>
+                        <input type="text" name="state" class="form-input"
+                               value="<%= user.state || '' %>" placeholder="e.g. California">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">City</label>
+                        <input type="text" name="city" class="form-input"
+                               value="<%= user.city || '' %>" placeholder="e.g. Los Angeles">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">ZIP / Postal Code</label>
+                        <input type="text" name="zip" class="form-input"
+                               value="<%= user.zip || '' %>" placeholder="e.g. 90001">
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label class="form-label">Address</label>
+                        <input type="text" name="address" class="form-input"
+                               value="<%= user.address || '' %>" placeholder="Street address">
+                    </div>
+
+                    <!-- Currency Selector -->
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label class="form-label">
+                            <i class="fas fa-coins"></i> Display Currency
+                            <span style="color: #f59e0b; font-size: 12px; margin-left: 8px;">
+                                ⚠ Changing currency will convert your balance
+                            </span>
+                        </label>
+                        <select name="currency" class="form-input" id="currencySelect">
+                            <% currencies.forEach(c => { %>
+                                <option value="<%= c.code %>"
+                                    <%= user.currency === c.code ? 'selected' : '' %>>
+                                    <%= c.flag %> <%= c.code %> — <%= c.name %> (<%= c.symbol %>)
+                                </option>
+                            <% }) %>
+                        </select>
+                        <small style="color: #52525b; font-size: 12px; margin-top: 6px; display: block;">
+                            Current: <strong style="color: #8b5cf6;"><%= user.currency || 'USD' %></strong>
+                            · Balance stored in: <strong style="color: #8b5cf6;"><%= user.balance_currency || 'USD' %></strong>
+                        </small>
+                    </div>
+                </div>
+
+                <button type="submit" style="padding: 12px 32px; background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; margin-top: 8px;">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </form>
+        </div>
+
+        <!-- ── Change Password ── -->
+        <div class="card">
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 24px; color: #f4f4f5;">
+                <i class="fas fa-lock" style="color: #ef4444;"></i> Change Password
+            </h3>
+            <form action="/profile/change-password" method="POST">
+                <div class="form-group">
+                    <label class="form-label">Current Password</label>
+                    <input type="password" name="current_password" class="form-input"
+                           placeholder="Enter current password" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">New Password</label>
+                    <input type="password" name="new_password" class="form-input"
+                           placeholder="Minimum 8 characters" required id="newPass">
+                    <div style="height: 4px; background: var(--border-color); border-radius: 4px; margin-top: 8px;">
+                        <div id="strengthBar" style="height: 100%; width: 0%; border-radius: 4px; transition: all 0.3s;"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Confirm New Password</label>
+                    <input type="password" name="confirm_password" class="form-input"
+                           placeholder="Repeat new password" required>
+                </div>
+                <button type="submit" style="padding: 12px 24px; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
+                    <i class="fas fa-key"></i> Change Password
+                </button>
+            </form>
+        </div>
+
+        <!-- ── Account Info ── -->
+        <div class="card">
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 24px; color: #f4f4f5;">
+                <i class="fas fa-id-card" style="color: #22c55e;"></i> Account Status
+            </h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 12px 0; color: var(--text-secondary); font-size: 13px;">Account ID</td>
+                    <td style="padding: 12px 0; font-weight: 600; text-align: right;">#<%= user.id %></td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 12px 0; color: var(--text-secondary); font-size: 13px;">KYC Status</td>
+                    <td style="padding: 12px 0; text-align: right;">
+                        <span style="color: <%= user.kyc_status === 'approved' ? '#22c55e' : user.kyc_status === 'rejected' ? '#ef4444' : '#f59e0b' %>; font-weight: 600; text-transform: capitalize;">
+                            <%= user.kyc_status || 'Pending' %>
+                        </span>
+                    </td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 12px 0; color: var(--text-secondary); font-size: 13px;">Account Verified</td>
+                    <td style="padding: 12px 0; text-align: right;">
+                        <span style="color: <%= user.account_verified ? '#22c55e' : '#f59e0b' %>; font-weight: 600;">
+                            <%= user.account_verified ? '✓ Verified' : '⏳ Pending' %>
+                        </span>
+                    </td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 12px 0; color: var(--text-secondary); font-size: 13px;">Member Since</td>
+                    <td style="padding: 12px 0; font-weight: 600; text-align: right;">
+                        <%= new Date(user.created_at).toLocaleDateString() %>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px 0; color: var(--text-secondary); font-size: 13px;">Display Currency</td>
+                    <td style="padding: 12px 0; font-weight: 600; text-align: right; color: #8b5cf6;">
+                        <%= user.currency || 'USD' %>
+                    </td>
+                </tr>
+            </table>
+
+            <a href="/messages" style="display: flex; align-items: center; gap: 10px; margin-top: 20px; padding: 12px 16px; background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.3); border-radius: 10px; color: #8b5cf6; text-decoration: none; font-weight: 600;">
+                <i class="fas fa-envelope"></i> View My Messages
+                <% if (typeof unreadMessages !== 'undefined' && unreadMessages > 0) { %>
+                    <span style="background: #ef4444; color: white; border-radius: 10px; padding: 2px 8px; font-size: 11px; margin-left: auto;"><%= unreadMessages %> new</span>
+                <% } %>
+            </a>
+        </div>
+
+    </div>
+</div>
+
+<script>
+// Password strength indicator
+document.getElementById('newPass')?.addEventListener('input', function() {
+    const bar = document.getElementById('strengthBar');
+    const val = this.value;
+    let score = 0;
+    if (val.length >= 8)  score++;
+    if (val.length >= 12) score++;
+    if (/[A-Z]/.test(val)) score++;
+    if (/[0-9]/.test(val)) score++;
+    if (/[^A-Za-z0-9]/.test(val)) score++;
+    const colors = ['', '#ef4444', '#f59e0b', '#3b82f6', '#22c55e', '#22c55e'];
+    const widths = ['0%', '20%', '40%', '65%', '85%', '100%'];
+    bar.style.width      = widths[score];
+    bar.style.background = colors[score];
+});
+</script>
+
+<%- include('../partials/footer') %>

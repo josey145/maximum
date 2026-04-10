@@ -1,35 +1,71 @@
-    <footer class="footer">
-        <div class="footer-content">
-            <div class="logo" style="font-size: 16px;">
-                <div class="logo-icon" style="width: 32px; height: 32px; font-size: 14px;">M</div>
-                <span>Margin Stallions Asset</span>
-            </div>
-            
-            <div class="footer-links">
-                <a href="/terms" class="footer-link">Terms</a>
-                <a href="/privacy" class="footer-link">Privacy</a>
-                <a href="/contact" class="footer-link">Contact</a>
-            </div>
-            
-            <div style="color: var(--text-secondary); font-size: 14px;">
-                © 2024 Maximum. All rights reserved.
-            </div>
-        </div>
-    </footer>
+<footer class="footer">
+    <div class="footer-content">
 
-    <!-- Socket.IO -->
-    <script src="/socket.io/socket.io.js"></script>
-    
-    <!-- Flash Messages Auto-hide -->
-    <script>
-        setTimeout(() => {
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(alert => {
-                alert.style.opacity = '0';
-                alert.style.transition = 'opacity 0.5s ease';
-                setTimeout(() => alert.remove(), 500);
-            });
-        }, 5000);
-    </script>
+        <!-- Logo -->
+        <div class="logo" style="font-size: 16px;">
+            <div class="logo-icon" style="width: 32px; height: 32px; font-size: 14px;">M</div>
+            <span><%= site.name %></span>
+        </div>
+
+        <!-- Links -->
+        <div class="footer-links">
+            <a href="/terms"   class="footer-link">Terms</a>
+            <a href="/privacy" class="footer-link">Privacy</a>
+            <a href="/contact" class="footer-link">Contact</a>
+            <% if (site.support_email) { %>
+                <a href="mailto:<%= site.support_email %>" class="footer-link">
+                    <i class="fas fa-envelope"></i> <%= site.support_email %>
+                </a>
+            <% } %>
+            <% if (site.support_whatsapp) { %>
+                <a href="https://wa.me/<%= site.support_whatsapp.replace(/\D/g, '') %>" 
+                   target="_blank" class="footer-link" style="color: #22c55e;">
+                    <i class="fab fa-whatsapp"></i> WhatsApp
+                </a>
+            <% } %>
+            <% if (site.support_phone) { %>
+                <a href="tel:<%= site.support_phone %>" class="footer-link">
+                    <i class="fas fa-phone"></i> <%= site.support_phone %>
+                </a>
+            <% } %>
+        </div>
+
+        <!-- Copyright -->
+        <div style="color: var(--text-secondary); font-size: 14px;">
+            &copy; <%= site.current_year %> <%= site.name %>. All rights reserved.
+        </div>
+    </div>
+</footer>
+
+<!-- Socket.IO -->
+<script src="/socket.io/socket.io.js"></script>
+
+<!-- Flash Messages Auto-hide -->
+<script>
+    setTimeout(() => {
+        document.querySelectorAll('.alert').forEach(alert => {
+            alert.style.opacity = '0';
+            alert.style.transition = 'opacity 0.5s ease';
+            setTimeout(() => alert.remove(), 500);
+        });
+    }, 5000);
+</script>
+
+<!-- Live Chat Widget (Tawk.to) — only shown if enabled in admin settings -->
+<% if (site.live_chat_enabled && site.tawkto_id) { %>
+<script type="text/javascript">
+    var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
+    (function(){
+        var s1 = document.createElement("script"),
+            s0 = document.getElementsByTagName("script")[0];
+        s1.async = true;
+        s1.src = 'https://embed.tawk.to/<%= site.tawkto_id %>/default';
+        s1.charset = 'UTF-8';
+        s1.setAttribute('crossorigin', '*');
+        s0.parentNode.insertBefore(s1, s0);
+    })();
+</script>
+<% } %>
+
 </body>
 </html>

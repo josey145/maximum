@@ -1,0 +1,890 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<style>
+    .trading-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 24px 16px;
+    }
+
+    .trading-header {
+        margin-bottom: 24px;
+    }
+
+    .trading-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: #f4f4f5;
+        margin-bottom: 8px;
+    }
+
+    /* Account Info Bar */
+    .account-bar {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        border: 1px solid #2a2a3e;
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+
+    .account-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 20px;
+    }
+
+    .account-item {
+        text-align: center;
+        padding: 16px;
+        background: rgba(0,0,0,0.2);
+        border-radius: 12px;
+    }
+
+    .account-label {
+        color: #888;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+    }
+
+    .account-value {
+        color: #fff;
+        font-size: 20px;
+        font-weight: 700;
+        font-family: 'Courier New', monospace;
+    }
+
+    .account-value.positive { color: #22c55e; }
+    .account-value.negative { color: #ef4444; }
+    .account-value.warning { color: #f59e0b; }
+
+    /* Trading Grid */
+    .trading-grid {
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 24px;
+    }
+
+    @media (max-width: 1024px) {
+        .trading-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Chart Section */
+    .chart-card {
+        background: #111118;
+        border: 1px solid #1e1e2e;
+        border-radius: 20px;
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .pair-info h3 {
+        font-size: 24px;
+        font-weight: 700;
+        color: #f4f4f5;
+        margin-bottom: 4px;
+    }
+
+    .pair-info p {
+        color: #52525b;
+        font-size: 14px;
+    }
+
+    .price-display-main {
+        text-align: right;
+    }
+
+    .price-main {
+        font-size: 32px;
+        font-weight: 700;
+        color: #f4f4f5;
+        font-family: 'Courier New', monospace;
+    }
+
+    .price-change {
+        font-size: 14px;
+        margin-top: 4px;
+    }
+
+    /* Pairs Grid */
+    .pairs-section {
+        background: #111118;
+        border: 1px solid #1e1e2e;
+        border-radius: 20px;
+        padding: 24px;
+    }
+
+    .pairs-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 12px;
+    }
+
+    .pair-card {
+        background: #0d0d14;
+        border: 2px solid transparent;
+        border-radius: 12px;
+        padding: 16px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .pair-card:hover {
+        border-color: #8b5cf6;
+        background: #1a1a24;
+    }
+
+    .pair-card.active {
+        border-color: #22c55e;
+        background: rgba(34,197,94,0.1);
+    }
+
+    .pair-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    .pair-symbol {
+        font-weight: 700;
+        color: #fff;
+        font-size: 14px;
+    }
+
+    .pair-status {
+        width: 8px;
+        height: 8px;
+        background: #22c55e;
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    .pair-prices {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+
+    .price-box {
+        text-align: center;
+    }
+
+    .price-label-small {
+        color: #666;
+        font-size: 10px;
+        text-transform: uppercase;
+    }
+
+    .price-value-small {
+        color: #fff;
+        font-size: 16px;
+        font-weight: 600;
+        font-family: 'Courier New', monospace;
+    }
+
+    .price-value-small.bid { color: #ef4444; }
+    .price-value-small.ask { color: #22c55e; }
+
+    .pair-spread {
+        color: #888;
+        font-size: 11px;
+        text-align: center;
+        padding-top: 8px;
+        border-top: 1px solid #2a2a3e;
+    }
+
+    /* Trade Panel */
+    .trade-panel {
+        background: #111118;
+        border: 1px solid #1e1e2e;
+        border-radius: 20px;
+        padding: 24px;
+        height: fit-content;
+    }
+
+    .panel-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #f4f4f5;
+        margin-bottom: 20px;
+    }
+
+    .selected-pair {
+        background: #0d0d14;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .selected-pair-label {
+        color: #666;
+        font-size: 12px;
+        margin-bottom: 4px;
+    }
+
+    .selected-pair-value {
+        color: #fff;
+        font-size: 20px;
+        font-weight: 700;
+    }
+
+    .direction-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+
+    .direction-tab {
+        flex: 1;
+        padding: 14px;
+        border-radius: 10px;
+        border: none;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-transform: uppercase;
+    }
+
+    .direction-tab.buy {
+        background: rgba(34,197,94,0.1);
+        color: #22c55e;
+    }
+
+    .direction-tab.buy.active {
+        background: #22c55e;
+        color: white;
+    }
+
+    .direction-tab.sell {
+        background: rgba(239,68,68,0.1);
+        color: #ef4444;
+    }
+
+    .direction-tab.sell.active {
+        background: #ef4444;
+        color: white;
+    }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 12px;
+        color: #888;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-input, .form-select {
+        width: 100%;
+        background: #0d0d14;
+        border: 1px solid #2a2a3e;
+        border-radius: 10px;
+        padding: 14px;
+        color: #f4f4f5;
+        font-size: 16px;
+        font-family: 'Courier New', monospace;
+    }
+
+    .form-input:focus, .form-select:focus {
+        outline: none;
+        border-color: #8b5cf6;
+    }
+
+    .calculation-box {
+        background: #0d0d14;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 20px;
+    }
+
+    .calc-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    .calc-row:last-child {
+        margin-bottom: 0;
+        padding-top: 8px;
+        border-top: 1px solid #2a2a3e;
+        font-weight: 600;
+    }
+
+    .calc-label {
+        color: #888;
+    }
+
+    .calc-value {
+        color: #fff;
+        font-family: 'Courier New', monospace;
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 18px;
+        border-radius: 12px;
+        border: none;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-submit.buy {
+        background: #22c55e;
+        color: white;
+    }
+
+    .btn-submit.buy:hover {
+        background: #16a34a;
+    }
+
+    .btn-submit.sell {
+        background: #ef4444;
+        color: white;
+    }
+
+    .btn-submit.sell:hover {
+        background: #dc2626;
+    }
+
+    .btn-submit:disabled {
+        background: #374151;
+        color: #6b7280;
+        cursor: not-allowed;
+    }
+
+    /* Positions Table */
+    .positions-section {
+        background: #111118;
+        border: 1px solid #1e1e2e;
+        border-radius: 20px;
+        padding: 24px;
+        margin-top: 24px;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .positions-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .positions-table th {
+        color: #888;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        text-align: left;
+        padding: 12px;
+        border-bottom: 1px solid #2a2a3e;
+    }
+
+    .positions-table td {
+        padding: 16px 12px;
+        border-bottom: 1px solid #1e1e2e;
+    }
+
+    .positions-table tr:hover {
+        background: rgba(255,255,255,0.02);
+    }
+
+    .position-pair {
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .position-type {
+        text-transform: uppercase;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 4px 8px;
+        border-radius: 4px;
+        display: inline-block;
+    }
+
+    .position-type.buy {
+        background: rgba(34,197,94,0.2);
+        color: #22c55e;
+    }
+
+    .position-type.sell {
+        background: rgba(239,68,68,0.2);
+        color: #ef4444;
+    }
+
+    .position-price {
+        font-family: 'Courier New', monospace;
+        color: #fff;
+    }
+
+    .position-pnl {
+        font-family: 'Courier New', monospace;
+        font-weight: 700;
+    }
+
+    .position-pnl.positive { color: #22c55e; }
+    .position-pnl.negative { color: #ef4444; }
+
+    .btn-close {
+        background: #ef4444;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .btn-close:hover {
+        background: #dc2626;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+    }
+
+    /* Alert Box */
+    .alert {
+        padding: 16px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        font-size: 14px;
+    }
+
+    .alert-success {
+        background: rgba(34,197,94,0.1);
+        border: 1px solid #22c55e;
+        color: #22c55e;
+    }
+
+    .alert-error {
+        background: rgba(239,68,68,0.1);
+        border: 1px solid #ef4444;
+        color: #ef4444;
+    }
+</style>
+
+<div class="trading-container">
+    <div class="trading-header">
+        <h1 class="trading-title">Forex Trading</h1>
+        <p style="color: #52525b;">Trade currency pairs with leverage. Real market execution.</p>
+    </div>
+
+    <!-- Flash Messages -->
+    <% if (success_msg && success_msg.length > 0) { %>
+        <div class="alert alert-success"><%= success_msg %></div>
+    <% } %>
+    <% if (error_msg && error_msg.length > 0) { %>
+        <div class="alert alert-error"><%= error_msg %></div>
+    <% } %>
+
+    <!-- Account Info -->
+    <div class="account-bar">
+        <div class="account-grid">
+            <div class="account-item">
+                <div class="account-label">Balance</div>
+                <div class="account-value"><%= formatCurrency(account.balance, account.currency) %></div>
+            </div>
+            <div class="account-item">
+                <div class="account-label">Equity</div>
+                <div class="account-value <%= account.equity + account.totalOpenPnL >= account.balance ? 'positive' : 'negative' %>">
+                    <%= formatCurrency(account.equity + account.totalOpenPnL, account.currency) %>
+                </div>
+            </div>
+            <div class="account-item">
+                <div class="account-label">Used Margin</div>
+                <div class="account-value"><%= formatCurrency(account.usedMargin, account.currency) %></div>
+            </div>
+            <div class="account-item">
+                <div class="account-label">Free Margin</div>
+                <div class="account-value <%= account.freeMargin > 100 ? 'positive' : 'warning' %>">
+                    <%= formatCurrency(account.freeMargin, account.currency) %>
+                </div>
+            </div>
+            <div class="account-item">
+                <div class="account-label">Margin Level</div>
+                <div class="account-value <%= account.marginLevel > 100 ? 'positive' : account.marginLevel > 50 ? 'warning' : 'negative' %>">
+                    <%= account.marginLevel.toFixed(1) %>%
+                </div>
+            </div>
+            <div class="account-item">
+                <div class="account-label">Open P&L</div>
+                <div class="account-value <%= account.totalOpenPnL >= 0 ? 'positive' : 'negative' %>">
+                    <%= account.totalOpenPnL >= 0 ? '+' : '' %><%= formatCurrency(account.totalOpenPnL, account.currency) %>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="trading-grid">
+        <!-- Left Column: Chart & Pairs -->
+        <div>
+            <!-- Chart -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="pair-info">
+                        <h3 id="chartPairName">Select a Pair</h3>
+                        <p id="chartPairSymbol">Click a pair below to start trading</p>
+                    </div>
+                    <div class="price-display-main">
+                        <div class="price-main" id="chartPrice">0.00000</div>
+                        <div class="price-change" id="chartChange">+0.00%</div>
+                    </div>
+                </div>
+                <!-- TradingView Widget -->
+                <div id="tradingview_chart" style="height: 400px; background: #0d0d14; border-radius: 12px;"></div>
+            </div>
+
+            <!-- Pairs Grid -->
+            <div class="pairs-section">
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #f4f4f5;">Currency Pairs</h3>
+                <div class="pairs-grid">
+                    <% pairs.forEach(pair => { %>
+                        <div class="pair-card" data-id="<%= pair.id %>" data-symbol="<%= pair.symbol %>" data-name="<%= pair.name %>" data-bid="<%= pair.bid %>" data-ask="<%= pair.ask %>">
+                            <div class="pair-header">
+                                <span class="pair-symbol"><%= pair.symbol %></span>
+                                <span class="pair-status"></span>
+                            </div>
+                            <div class="pair-prices">
+                                <div class="price-box">
+                                    <div class="price-label-small">Bid</div>
+                                    <div class="price-value-small bid" id="bid-<%= pair.symbol %>">
+                                    <%= pair.bid ? parseFloat(pair.bid).toFixed(5) : '0.00000' %>
+                                </div>
+                                </div>
+                                <div class="price-box">
+                                    <div class="price-label-small">Ask</div>
+                                    <div class="price-value-small ask" id="ask-<%= pair.symbol %>">
+                                    <%= pair.ask ? parseFloat(pair.ask).toFixed(5) : '0.00000' %>
+                                </div>
+                                </div>
+                            </div>
+                            <div class="pair-spread">Spread: <%= (pair.spread * 10000).toFixed(1) %> pips</div>
+                        </div>
+                    <% }) %>
+                </div>
+            </div>
+
+            <!-- Open Positions -->
+            <% if (openPositions.length > 0) { %>
+            <div class="positions-section">
+                <div class="section-header">
+                    <h3 style="font-size: 18px; font-weight: 600; color: #f4f4f5;">Open Positions (<%= openPositions.length %>)</h3>
+                </div>
+                <table class="positions-table">
+                    <thead>
+                        <tr>
+                            <th>Pair</th>
+                            <th>Type</th>
+                            <th>Size</th>
+                            <th>Entry</th>
+                            <th>Current</th>
+                            <th>P&L (pips)</th>
+                            <th>P&L ($)</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% openPositions.forEach(pos => { %>
+                            <tr>
+                                <td>
+                                    <div class="position-pair"><%= pos.pair_symbol %></div>
+                                    <div style="color: #666; font-size: 11px;"><%= pos.pair_name %></div>
+                                </td>
+                                <td>
+                                    <span class="position-type <%= pos.direction %>"><%= pos.direction %></span>
+                                </td>
+                                <td class="position-price"><%= pos.lot_size %> lots</td>
+                                <td class="position-price"><%= Number(pos.entry_price).toFixed(5) %></td>
+                                <td class="position-price"><%= pos.current_price ? Number(pos.current_price).toFixed(5) : '-' %></td>
+                                <td class="position-pnl <%= pos.pips_profit >= 0 ? 'positive' : 'negative' %>">
+                                    <%= pos.pips_profit >= 0 ? '+' : '' %><%= pos.pips_profit ? pos.pips_profit.toFixed(1) : '0.0' %>
+                                </td>
+                                <td class="position-pnl <%= pos.profit_loss >= 0 ? 'positive' : 'negative' %>">
+                                    <%= pos.profit_loss >= 0 ? '+' : '' %><%= formatCurrency(pos.profit_loss || 0, account.currency) %>
+                                </td>
+                                <td>
+                                    <form action="/trading/close-position/<%= pos.id %>" method="POST" style="display: inline;">
+                                        <button type="submit" class="btn-close">Close</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+            <% } %>
+        </div>
+
+        <!-- Right Column: Trade Panel -->
+        <div class="trade-panel">
+            <h3 class="panel-title">New Order</h3>
+            
+            <div class="selected-pair">
+                <div class="selected-pair-label">Selected Pair</div>
+                <div class="selected-pair-value" id="selectedPairDisplay">--</div>
+                <input type="hidden" name="pair_id" id="selectedPairId">
+            </div>
+
+            <form action="/trading/open-position" method="POST" id="tradeForm">
+                <input type="hidden" name="pair_id" id="formPairId">
+                
+                <!-- Direction -->
+                <div class="direction-tabs">
+                    <button type="button" class="direction-tab buy active" data-direction="buy">Buy</button>
+                    <button type="button" class="direction-tab sell" data-direction="sell">Sell</button>
+                </div>
+                <input type="hidden" name="direction" id="directionInput" value="buy">
+
+                <!-- Lot Size -->
+                <div class="form-group">
+                    <label class="form-label">Lot Size</label>
+                    <select name="lot_size" class="form-select" id="lotSize" onchange="calculateMargin()">
+                        <option value="0.01">0.01 Micro (1,000 units)</option>
+                        <option value="0.1">0.1 Mini (10,000 units)</option>
+                        <option value="1" selected>1.0 Standard (100,000 units)</option>
+                        <option value="2">2.0 (200,000 units)</option>
+                        <option value="5">5.0 (500,000 units)</option>
+                        <option value="10">10.0 (1,000,000 units)</option>
+                    </select>
+                </div>
+
+                <!-- Leverage -->
+                <div class="form-group">
+                    <label class="form-label">Leverage</label>
+                    <select name="leverage" class="form-select" id="leverage" onchange="calculateMargin()">
+                        <option value="50">1:50</option>
+                        <option value="100" selected>1:100</option>
+                        <option value="200">1:200</option>
+                        <option value="500">1:500</option>
+                    </select>
+                </div>
+
+                <!-- Stop Loss -->
+                <div class="form-group">
+                    <label class="form-label">Stop Loss (optional)</label>
+                    <input type="number" name="stop_loss" class="form-input" step="0.00001" placeholder="0.00000">
+                </div>
+
+                <!-- Take Profit -->
+                <div class="form-group">
+                    <label class="form-label">Take Profit (optional)</label>
+                    <input type="number" name="take_profit" class="form-input" step="0.00001" placeholder="0.00000">
+                </div>
+
+                <!-- Calculations -->
+                <div class="calculation-box">
+                    <div class="calc-row">
+                        <span class="calc-label">Contract Size:</span>
+                        <span class="calc-value" id="contractSize">100,000</span>
+                    </div>
+                    <div class="calc-row">
+                        <span class="calc-label">Pip Value:</span>
+                        <span class="calc-value" id="pipValue">$10.00</span>
+                    </div>
+                    <div class="calc-row">
+                        <span class="calc-label">Margin Required:</span>
+                        <span class="calc-value" id="marginRequired">$1,000.00</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit buy" id="submitBtn" disabled>
+                    Open Position
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>
+
+<!-- TradingView Widget -->
+<script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    let selectedPair = null;
+    let currentDirection = 'buy';
+    let tvWidget = null;
+
+    // Initialize TradingView Chart
+    function initChart(symbol) {
+        if (tvWidget) {
+            tvWidget.remove();
+        }
+        
+        tvWidget = new TradingView.widget({
+            "width": "100%",
+            "height": 400,
+            "symbol": "FX:" + (symbol || "EURUSD"),
+            "interval": "15",
+            "timezone": "Etc/UTC",
+            "theme": "dark",
+            "style": "1",
+            "locale": "en",
+            "toolbar_bg": "#f1f3f6",
+            "enable_publishing": false,
+            "hide_top_toolbar": true,
+            "hide_legend": true,
+            "save_image": false,
+            "container_id": "tradingview_chart"
+        });
+    }
+
+    // Select pair - FIXED: removed event parameter, use 'this'
+    function selectPair(id, symbol, name, bid, ask) {
+        selectedPair = { id, symbol, name, bid, ask };
+        
+        document.getElementById('selectedPairId').value = id;
+        document.getElementById('formPairId').value = id;
+        document.getElementById('selectedPairDisplay').textContent = symbol;
+        document.getElementById('chartPairName').textContent = name;
+        document.getElementById('chartPairSymbol').textContent = symbol;
+        document.getElementById('chartPrice').textContent = bid.toFixed(5);
+        
+        // Enable submit
+        document.getElementById('submitBtn').disabled = false;
+        
+        // Update chart
+        initChart(symbol);
+        
+        calculateMargin();
+    }
+
+    // Set direction - FIXED
+    function setDirection(dir) {
+        currentDirection = dir;
+        document.getElementById('directionInput').value = dir;
+        
+        // Update UI
+        document.querySelectorAll('.direction-tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        document.querySelector('.direction-tab[data-direction="' + dir + '"]').classList.add('active');
+        
+        const btn = document.getElementById('submitBtn');
+        btn.className = 'btn-submit ' + dir;
+        btn.textContent = 'Open ' + dir.toUpperCase() + ' Position';
+    }
+
+    // Calculate margin and pip value
+    function calculateMargin() {
+        if (!selectedPair) return;
+        
+        const lotSize = parseFloat(document.getElementById('lotSize').value);
+        const leverage = parseInt(document.getElementById('leverage').value);
+        const contractSize = lotSize * 100000;
+        
+        // Estimate margin (simplified)
+        const marginRequired = contractSize / leverage;
+        
+        // Pip value: $10 per pip per standard lot for USD pairs
+        const pipValue = lotSize * 10;
+        
+        document.getElementById('contractSize').textContent = contractSize.toLocaleString();
+        document.getElementById('pipValue').textContent = '$' + pipValue.toFixed(2);
+        document.getElementById('marginRequired').textContent = '$' + marginRequired.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    }
+
+    // Socket.io for live prices
+    function initSocket() {
+        if (typeof io === 'undefined') return;
+        
+        const socket = io();
+        
+        socket.on('forex_price', (data) => {
+            // Update pair prices
+            const bidEl = document.getElementById('bid-' + data.symbol);
+            const askEl = document.getElementById('ask-' + data.symbol);
+            
+            if (bidEl) bidEl.textContent = data.bid.toFixed(5);
+            if (askEl) askEl.textContent = data.ask.toFixed(5);
+            
+            // Update chart price if this is selected pair
+            if (selectedPair && selectedPair.symbol === data.symbol) {
+                document.getElementById('chartPrice').textContent = data.bid.toFixed(5);
+            }
+        });
+        
+        socket.on('position_update', (data) => {
+            // Refresh page to show updated P&L
+            location.reload();
+        });
+    }
+
+    // Initialize everything when DOM is ready
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('DOM loaded, initializing...');
+        
+        // Add click handlers to pair cards
+        document.querySelectorAll('.pair-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const id = this.dataset.id;
+                const symbol = this.dataset.symbol;
+                const name = this.dataset.name;
+                const bid = parseFloat(this.dataset.bid);
+                const ask = parseFloat(this.dataset.ask);
+                
+                console.log('Pair clicked:', symbol, bid, ask);
+                
+                // Highlight selected card
+                document.querySelectorAll('.pair-card').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+                
+                selectPair(id, symbol, name, bid, ask);
+            });
+        });
+        
+        // Add click handlers to direction tabs
+        document.querySelectorAll('.direction-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const dir = this.dataset.direction;
+                setDirection(dir);
+            });
+        });
+        
+        // Initialize chart
+        initChart('EURUSD');
+        
+        // Initialize socket
+        initSocket();
+        
+        console.log('Initialization complete');
+    });
+</script>

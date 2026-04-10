@@ -329,10 +329,10 @@
       </div>
     </div>
 
-    <% if (error_msg && error_msg.length > 0) { %>
+    <% if (typeof error_msg !== 'undefined' && error_msg && error_msg.length > 0) { %>
       <div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> <%= error_msg %></div>
     <% } %>
-    <% if (success_msg && success_msg.length > 0) { %>
+    <% if (typeof success_msg !== 'undefined' && success_msg && success_msg.length > 0) { %>
       <div class="alert alert-success"><i class="fas fa-check-circle"></i> <%= success_msg %></div>
     <% } %>
 
@@ -599,250 +599,405 @@
 </div>
 
 <script>
-  let resendInterval;
+  // Store form data between steps
+  var formData = {
+    step1: {},
+    step2: {}
+  };
 
-  // ── Step navigation ──────────────────────────────────────────────────────
+  // Step navigation function
   function setStep(n) {
-    document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
-    const c1 = document.getElementById('c1');
-    const c2 = document.getElementById('c2');
-    const c3 = document.getElementById('c3');
-    const c4 = document.getElementById('c4');
+    // Hide all step panels
+    document.querySelectorAll('.step-panel').forEach(function(p) {
+      p.classList.remove('active');
+    });
     
-    console.log('Code elements:', c1, c2, c3, c4); // Should show HTML elements
-    
-    const code = 
-    (document.getElementById('c1')?.value || '') +
-    (document.getElementById('c2')?.value || '') +
-    (document.getElementById('c3')?.value || '') +
-    (document.getElementById('c4')?.value || '');
-    
-    if (code.length !== 4 || !/^\d{4}$/.test(code)) {
-        e.preventDefault();
-        alert('Please enter the full 4-digit verification code. You entered: ' + code);
-        return false;
+    // Show current step
+    var currentStep = document.getElementById('step-' + n);
+    if (currentStep) {
+      currentStep.classList.add('active');
     }
-    for (let i = 1; i <= 3; i++) {
-      const el = document.getElementById('prog-' + i);
-      el.classList.remove('active', 'done');
-      if (i < n)  el.classList.add('done');
-      if (i === n) el.classList.add('active');
+    
+    // Update progress indicators
+    for (var i = 1; i <= 3; i++) {
+      var el = document.getElementById('prog-' + i);
+      if (el) {
+        el.classList.remove('active', 'done');
+        if (i < n) {
+          el.classList.add('done');
+        }
+        if (i === n) {
+          el.classList.add('active');
+        }
+      }
     }
+    
+    // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // ── Step 1 validation ────────────────────────────────────────────────────
-  function goStep2() {
-    const u   = document.getElementById('s1-username').value.trim();
-    const e   = document.getElementById('s1-email').value.trim();
-    const p   = document.getElementById('s1-password').value;
-    const c   = document.getElementById('s1-confirm').value;
-    const ph  = document.getElementById('s1-phone').value.trim();
-    const dob = document.getElementById('s1-dob').value;
-    const cur = document.getElementById('s1-currency').value;
-    const co  = document.getElementById('s1-country').value;
-    const st  = document.getElementById('s1-state').value.trim();
-    const ci  = document.getElementById('s1-city').value.trim();
-    const ad  = document.getElementById('s1-address').value.trim();
+  // Save step 1 data
+  function saveStep1Data() {
+    formData.step1 = {
+      username: document.getElementById('s1-username').value.trim(),
+      email: document.getElementById('s1-email').value.trim(),
+      password: document.getElementById('s1-password').value,
+      phone: document.getElementById('s1-phone').value.trim(),
+      dob: document.getElementById('s1-dob').value,
+      currency: document.getElementById('s1-currency').value,
+      country: document.getElementById('s1-country').value,
+      state: document.getElementById('s1-state').value.trim(),
+      city: document.getElementById('s1-city').value.trim(),
+      zip: document.getElementById('s1-zip').value.trim(),
+      address: document.getElementById('s1-address').value.trim()
+    };
+  }
 
-    if (!u || u.length < 3)        return alert('Username must be at least 3 characters.');
-    if (!e || !e.includes('@'))    return alert('Please enter a valid email address.');
-    if (!ph)                        return alert('Mobile number is required.');
-    if (!dob)                       return alert('Date of birth is required.');
-    if (!cur)                       return alert('Please select your preferred currency.');
-    if (!co)                        return alert('Please select your country.');
-    if (!st || !ci || !ad)          return alert('State, city and address are all required.');
-    if (p.length < 8)               return alert('Password must be at least 8 characters.');
-    if (!/[A-Z]/.test(p) || !/[0-9]/.test(p) || !/[^A-Za-z0-9]/.test(p))
-      return alert('Password must contain uppercase, number and special character.');
-    if (p !== c)                    return alert('Passwords do not match.');
+  // Save step 2 data
+  function saveStep2Data() {
+    formData.step2 = {
+      idType: document.getElementById('s2-idtype').value,
+      idNumber: document.getElementById('s2-idnumber').value.trim(),
+      idFront: document.getElementById('s2-idfront').files[0],
+      idBack: document.getElementById('s2-idback').files[0]
+    };
+  }
+
+  // Go to step 2
+  function goStep2() {
+    // Validation
+    var username = document.getElementById('s1-username').value.trim();
+    var email = document.getElementById('s1-email').value.trim();
+    var password = document.getElementById('s1-password').value;
+    var confirm = document.getElementById('s1-confirm').value;
+    var dob = document.getElementById('s1-dob').value;
+    var phone = document.getElementById('s1-phone').value.trim();
+    var currency = document.getElementById('s1-currency').value;
+    var country = document.getElementById('s1-country').value;
+    
+    if (!username || username.length < 3) {
+      alert('Username must be at least 3 characters');
+      return;
+    }
+    if (!email || !email.includes('@')) {
+      alert('Please enter a valid email');
+      return;
+    }
+    if (!dob) {
+      alert('Please enter your date of birth');
+      return;
+    }
+    if (!phone) {
+      alert('Please enter your mobile number');
+      return;
+    }
+    if (!currency) {
+      alert('Please select a currency');
+      return;
+    }
+    if (!country) {
+      alert('Please select a country');
+      return;
+    }
+    if (password.length < 8) {
+      alert('Password must be at least 8 characters');
+      return;
+    }
+    
+    // Password strength validation
+    var hasUpper = /[A-Z]/.test(password);
+    var hasLower = /[a-z]/.test(password);
+    var hasNumber = /[0-9]/.test(password);
+    var hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+    
+    if (!hasUpper || !hasLower || !hasNumber || !hasSpecial) {
+      alert('Password must contain uppercase, lowercase, number and special character');
+      return;
+    }
+    
+    if (password !== confirm) {
+      alert('Passwords do not match');
+      return;
+    }
+    
+    saveStep1Data();
     setStep(2);
   }
 
-  // ── Step 2 → send code ───────────────────────────────────────────────────
+  // Go to step 3 (send code)
   async function goStep3() {
-    const idType   = document.getElementById('s2-idtype').value;
-    const idNumber = document.getElementById('s2-idnumber').value.trim();
-    const idFront  = document.getElementById('s2-idfront').files[0];
-
-    if (!idType)   return alert('Please select your ID type.');
-    if (!idNumber) return alert('Please enter your ID number.');
-    if (!idFront)  return alert('Please upload the front of your ID.');
-
-    const btn = document.getElementById('btn-step2-next');
+    var idType = document.getElementById('s2-idtype').value;
+    var idNumber = document.getElementById('s2-idnumber').value.trim();
+    var idFront = document.getElementById('s2-idfront').files[0];
+    
+    if (!idType) {
+      alert('Please select ID type');
+      return;
+    }
+    if (!idNumber) {
+      alert('Please enter ID number');
+      return;
+    }
+    if (!idFront) {
+      alert('Please upload ID front');
+      return;
+    }
+    
+    // Check file size (max 5MB)
+    if (idFront.size > 5 * 1024 * 1024) {
+      alert('Front ID file must be less than 5MB');
+      return;
+    }
+    
+    var idBack = document.getElementById('s2-idback').files[0];
+    if (idBack && idBack.size > 5 * 1024 * 1024) {
+      alert('Back ID file must be less than 5MB');
+      return;
+    }
+    
+    saveStep2Data();
+    
+    var btn = document.getElementById('btn-step2-next');
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending code...';
-
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+    
     try {
-      const email = document.getElementById('s1-email').value.trim();
-      const res = await fetch('/register/send-code', {
+      var email = document.getElementById('s1-email').value.trim();
+      var res = await fetch('/register/send-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email: email })
       });
-      const data = await res.json();
-
+      var data = await res.json();
+      
       if (!data.success) {
-        alert(data.message || 'Failed to send verification code. Please try again.');
+        alert(data.message || 'Failed to send code');
         btn.disabled = false;
         btn.innerHTML = 'Continue <i class="fas fa-arrow-right"></i>';
         return;
       }
-
+      
       document.getElementById('display-email').textContent = email;
       setStep(3);
       startResendTimer();
     } catch (err) {
       alert('Network error. Please try again.');
+      console.error(err);
     }
-
+    
     btn.disabled = false;
     btn.innerHTML = 'Continue <i class="fas fa-arrow-right"></i>';
   }
 
-  // ── Code box helpers ─────────────────────────────────────────────────────
-  function codeNext(el, nextId) {
-    el.value = el.value.replace(/[^0-9]/g, '');
-    if (el.value && nextId) document.getElementById(nextId).focus();
-  }
-
-  function codePrev(e, el, prevId) {
-    if (e.key === 'Backspace' && !el.value && prevId)
-      document.getElementById(prevId).focus();
-  }
-
-  // ── Resend timer ─────────────────────────────────────────────────────────
+  // Resend timer
+  var resendTimer = null;
   function startResendTimer() {
-    clearInterval(resendInterval);
-    let sec = 60;
-    document.getElementById('resend-btn').style.display = 'none';
-    document.getElementById('resend-timer').style.display = 'inline';
-    document.getElementById('countdown').textContent = sec;
-    resendInterval = setInterval(() => {
-      sec--;
-      document.getElementById('countdown').textContent = sec;
-      if (sec <= 0) {
-        clearInterval(resendInterval);
-        document.getElementById('resend-timer').style.display = 'none';
-        document.getElementById('resend-btn').style.display = 'inline';
+    var btn = document.getElementById('resend-btn');
+    var timerSpan = document.getElementById('resend-timer');
+    var countdown = document.getElementById('countdown');
+    var seconds = 60;
+    
+    btn.style.display = 'none';
+    timerSpan.style.display = 'inline';
+    countdown.textContent = seconds;
+    
+    if (resendTimer) clearInterval(resendTimer);
+    
+    resendTimer = setInterval(function() {
+      seconds--;
+      countdown.textContent = seconds;
+      if (seconds <= 0) {
+        clearInterval(resendTimer);
+        btn.style.display = 'inline';
+        timerSpan.style.display = 'none';
       }
     }, 1000);
   }
-
-  // ── File preview ─────────────────────────────────────────────────────────
-  function previewFile(side, input) {
-    const preview = document.getElementById('preview-' + side);
-    const file = input.files[0];
-    if (!file) return;
+// Handle file upload preview
+function handleFileUpload(inputId, previewId, zoneId) {
+  var input = document.getElementById(inputId);
+  var preview = document.getElementById(previewId);
+  var zone = document.getElementById(zoneId);
+  
+  if (!input || !preview || !zone) return;
+  
+  input.addEventListener('change', function(e) {
+    var file = e.target.files[0];
+    if (!file) {
+      preview.style.display = 'none';
+      zone.querySelector('.upload-icon').style.display = 'flex';
+      zone.querySelector('.upload-title').style.display = 'block';
+      zone.querySelector('.upload-sub').style.display = 'block';
+      return;
+    }
+    
     preview.style.display = 'block';
+    preview.innerHTML = '';
+    zone.querySelector('.upload-icon').style.display = 'none';
+    zone.querySelector('.upload-title').style.display = 'none';
+    zone.querySelector('.upload-sub').style.display = 'none';
+    
     if (file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = e => {
-        preview.innerHTML =
-          '<img src="' + e.target.result + '" alt="ID Preview">' +
-          '<div class="file-name"><i class="fas fa-check-circle"></i> ' + file.name + '</div>';
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var img = document.createElement('img');
+        img.src = e.target.result;
+        img.style.maxHeight = '120px';
+        img.style.borderRadius = '8px';
+        img.style.border = '1px solid #1e1e2e';
+        preview.appendChild(img);
       };
       reader.readAsDataURL(file);
-    } else {
-      preview.innerHTML = '<div class="file-name"><i class="fas fa-file-pdf"></i> ' + file.name + '</div>';
     }
-  }
-
-  function transferFile(srcId, destId) {
-    const src  = document.getElementById(srcId);
-    const dest = document.getElementById(destId);
-    if (src.files && src.files.length > 0) {
-      try {
-        const dt = new DataTransfer();
-        dt.items.add(src.files[0]);
-        dest.files = dt.files;
-      } catch(e) { console.warn('File transfer failed:', e); }
+    
+    var fileName = document.createElement('div');
+    fileName.className = 'file-name';
+    fileName.textContent = file.name;
+    preview.appendChild(fileName);
+  });
+  
+  // Drag and drop
+  zone.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    zone.classList.add('dragover');
+  });
+  
+  zone.addEventListener('dragleave', function() {
+    zone.classList.remove('dragover');
+  });
+  
+  zone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    zone.classList.remove('dragover');
+    var files = e.dataTransfer.files;
+    if (files.length > 0) {
+      input.files = files;
+      input.dispatchEvent(new Event('change'));
     }
-  }
+  });
+}
 
-  // ── Wire everything up after DOM ready ───────────────────────────────────
-  document.addEventListener('DOMContentLoaded', function () {
-
+  // Setup event listeners when page loads
+  document.addEventListener('DOMContentLoaded', function() {
     // Step buttons
     document.getElementById('btn-step1-next').addEventListener('click', goStep2);
     document.getElementById('btn-step2-back').addEventListener('click', function() { setStep(1); });
     document.getElementById('btn-step2-next').addEventListener('click', goStep3);
     document.getElementById('btn-step3-back').addEventListener('click', function() { setStep(2); });
-
-    // File inputs
-    document.getElementById('s2-idfront').addEventListener('change', function() { previewFile('front', this); });
-    document.getElementById('s2-idback').addEventListener('change',  function() { previewFile('back',  this); });
-
-    // Code digit inputs
-    const codeIds = ['c1','c2','c3','c4'];
-    codeIds.forEach(function(id, idx) {
-      const el = document.getElementById(id);
-      el.addEventListener('input', function() {
-        codeNext(this, codeIds[idx + 1] || '');
-      });
-      el.addEventListener('keydown', function(e) {
-        codePrev(e, this, codeIds[idx - 1] || '');
-      });
+    
+    // File uploads
+    handleFileUpload('s2-idfront', 'preview-front', 'upload-front');
+    handleFileUpload('s2-idback', 'preview-back', 'upload-back');
+    
+    // Code input auto-focus and navigation
+    var codeInputs = ['c1', 'c2', 'c3', 'c4'];
+    codeInputs.forEach(function(id, idx) {
+      var el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('input', function() {
+          this.value = this.value.replace(/[^0-9]/g, '');
+          if (this.value && idx < 3) {
+            document.getElementById(codeInputs[idx + 1]).focus();
+          }
+        });
+        
+        el.addEventListener('keydown', function(e) {
+          if (e.key === 'Backspace' && !this.value && idx > 0) {
+            document.getElementById(codeInputs[idx - 1]).focus();
+          }
+        });
+        
+        // Paste handling
+        el.addEventListener('paste', function(e) {
+          e.preventDefault();
+          var pasteData = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 4);
+          for (var i = 0; i < pasteData.length && i < 4; i++) {
+            document.getElementById(codeInputs[i]).value = pasteData[i];
+          }
+          if (pasteData.length < 4) {
+            document.getElementById(codeInputs[pasteData.length]).focus();
+          }
+        });
+      }
     });
-
+    
     // Resend button
-    document.getElementById('resend-btn').addEventListener('click', function(e) {
-      e.preventDefault();
-      goStep3();
-    });
-
-    // Form submit — populate hidden fields before sending
-    document.getElementById('reg-form').addEventListener('submit', function(e) {
-      const code = codeIds.map(id => document.getElementById(id).value).join('');
-      if (code.length < 4 || code.includes('')) {
-        e.preventDefault();
-        alert('Please enter the full 4-digit verification code.');
-        return;
-      }
-      if (!document.getElementById('terms').checked) {
-        e.preventDefault();
-        alert('You must accept the Terms of Service.');
-        return;
-      }
-
-      document.getElementById('f-username').value = document.getElementById('s1-username').value.trim();
-      document.getElementById('f-email').value    = document.getElementById('s1-email').value.trim();
-      document.getElementById('f-password').value = document.getElementById('s1-password').value;
-      document.getElementById('f-phone').value    = document.getElementById('s1-phone').value.trim();
-      document.getElementById('f-dob').value      = document.getElementById('s1-dob').value;
-      document.getElementById('f-currency').value = document.getElementById('s1-currency').value;
-      document.getElementById('f-country').value  = document.getElementById('s1-country').value;
-      document.getElementById('f-state').value    = document.getElementById('s1-state').value.trim();
-      document.getElementById('f-city').value     = document.getElementById('s1-city').value.trim();
-      document.getElementById('f-zip').value      = document.getElementById('s1-zip').value.trim();
-      document.getElementById('f-address').value  = document.getElementById('s1-address').value.trim();
-      document.getElementById('f-idtype').value   = document.getElementById('s2-idtype').value;
-      document.getElementById('f-idnumber').value = document.getElementById('s2-idnumber').value.trim();
-      document.getElementById('f-code').value     = code;
-
-      transferFile('s2-idfront', 'f-idfront');
-      transferFile('s2-idback',  'f-idback');
-    });
-
-    // Drag and drop on upload zones
-    document.querySelectorAll('.upload-zone').forEach(function(zone) {
-      zone.addEventListener('dragover',  function(e) { e.preventDefault(); zone.classList.add('dragover'); });
-      zone.addEventListener('dragleave', function()  { zone.classList.remove('dragover'); });
-      zone.addEventListener('drop', function(e) {
-        e.preventDefault();
-        zone.classList.remove('dragover');
-        const input = zone.querySelector('input[type="file"]');
-        if (e.dataTransfer.files.length) {
-          try {
-            const dt = new DataTransfer();
-            dt.items.add(e.dataTransfer.files[0]);
-            input.files = dt.files;
-            input.dispatchEvent(new Event('change'));
-          } catch(err) { console.warn('Drag drop failed:', err); }
+    document.getElementById('resend-btn').addEventListener('click', async function() {
+      if (this.disabled) return;
+      
+      this.disabled = true;
+      var email = document.getElementById('s1-email').value.trim();
+      
+      try {
+        var res = await fetch('/register/send-code', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email })
+        });
+        var data = await res.json();
+        
+        if (data.success) {
+          startResendTimer();
+        } else {
+          alert(data.message || 'Failed to resend code');
+          this.disabled = false;
         }
-      });
+      } catch (err) {
+        alert('Network error');
+        this.disabled = false;
+      }
+    });
+    
+    // Form submit
+    document.getElementById('reg-form').addEventListener('submit', function(e) {
+      var code = 
+        document.getElementById('c1').value +
+        document.getElementById('c2').value +
+        document.getElementById('c3').value +
+        document.getElementById('c4').value;
+      
+      if (code.length !== 4 || !/^\d{4}$/.test(code)) {
+        e.preventDefault();
+        alert('Please enter the full 4-digit code');
+        return false;
+      }
+      
+      // Fill hidden fields
+      document.getElementById('f-username').value = document.getElementById('s1-username').value.trim();
+      document.getElementById('f-email').value = document.getElementById('s1-email').value.trim();
+      document.getElementById('f-password').value = document.getElementById('s1-password').value;
+      document.getElementById('f-phone').value = document.getElementById('s1-phone').value.trim();
+      document.getElementById('f-dob').value = document.getElementById('s1-dob').value;
+      document.getElementById('f-currency').value = document.getElementById('s1-currency').value;
+      document.getElementById('f-country').value = document.getElementById('s1-country').value;
+      document.getElementById('f-state').value = document.getElementById('s1-state').value.trim();
+      document.getElementById('f-city').value = document.getElementById('s1-city').value.trim();
+      document.getElementById('f-zip').value = document.getElementById('s1-zip').value.trim();
+      document.getElementById('f-address').value = document.getElementById('s1-address').value.trim();
+      document.getElementById('f-idtype').value = document.getElementById('s2-idtype').value;
+      document.getElementById('f-idnumber').value = document.getElementById('s2-idnumber').value.trim();
+      document.getElementById('f-code').value = code;
+      
+      // Transfer files to hidden inputs
+      var idFrontFile = document.getElementById('s2-idfront').files[0];
+      var idBackFile = document.getElementById('s2-idback').files[0];
+      
+      if (idFrontFile) {
+        var dt = new DataTransfer();
+        dt.items.add(idFrontFile);
+        document.getElementById('f-idfront').files = dt.files;
+      }
+      
+      if (idBackFile) {
+        var dt2 = new DataTransfer();
+        dt2.items.add(idBackFile);
+        document.getElementById('f-idback').files = dt2.files;
+      }
+      
+      // Disable submit button to prevent double submission
+      document.getElementById('submit-btn').disabled = true;
+      document.getElementById('submit-btn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
     });
   });
 </script>
-
 <%- include('../partials/footer') %>

@@ -20,6 +20,22 @@
             </div>
         <% } %>
 
+        <!-- Add this at the top of your login form card -->
+        <% if (site && site.maintenance_mode) { %>
+            <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); border-radius: 10px; padding: 14px 16px; margin-bottom: 20px; display: flex; gap: 10px; align-items: flex-start;">
+                <i class="fas fa-tools" style="color: #f59e0b; margin-top: 2px;"></i>
+                <div>
+                    <div style="color: #f59e0b; font-weight: 600; font-size: 13px; margin-bottom: 4px;">
+                        Platform Under Maintenance
+                    </div>
+                    <div style="color: #a1a1aa; font-size: 12px;">
+                        <%= site.name %> is currently undergoing maintenance. 
+                        Admin access only at this time.
+                    </div>
+                </div>
+            </div>
+        <% } %>
+
         <div class="auth-form">
             <form action="/login" method="POST">
                 <div class="form-group">

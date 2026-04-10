@@ -1,0 +1,258 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<style>
+.message-detail-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.message-thread {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 24px;
+}
+
+.original-message {
+    padding: 28px;
+    background: rgba(139, 92, 246, 0.05);
+    border-bottom: 1px solid var(--border);
+}
+
+.message-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+}
+
+.badge-warning { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+.badge-pending { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+.badge-welcome { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
+.badge-general { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
+
+.message-subject-large {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 12px;
+    color: var(--text-primary);
+}
+
+.message-meta-large {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.message-content-large {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text-primary);
+    background: var(--secondary-bg);
+    padding: 20px;
+    border-radius: 12px;
+    border-left: 4px solid #8b5cf6;
+}
+
+.replies-section {
+    padding: 24px;
+}
+
+.reply-item {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.reply-item.admin-reply {
+    flex-direction: row-reverse;
+}
+
+.reply-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+}
+
+.admin-reply .reply-avatar {
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+}
+
+.user-reply .reply-avatar {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+.reply-content {
+    flex: 1;
+    background: var(--secondary-bg);
+    padding: 14px 18px;
+    border-radius: 12px;
+}
+
+.admin-reply .reply-content {
+    border-right: 3px solid #8b5cf6;
+}
+
+.user-reply .reply-content {
+    border-left: 3px solid #22c55e;
+}
+
+.reply-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+    font-size: 13px;
+}
+
+.reply-sender {
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.reply-time {
+    color: var(--text-secondary);
+}
+
+.reply-form-section {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+}
+
+.reply-form-section h3 {
+    margin: 0 0 16px;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.reply-form textarea {
+    width: 100%;
+    min-height: 140px;
+    padding: 16px;
+    background: var(--secondary-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-size: 15px;
+    resize: vertical;
+    margin-bottom: 16px;
+}
+
+.reply-form button {
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 14px;
+    margin-bottom: 20px;
+    transition: color 0.2s;
+}
+
+.back-btn:hover {
+    color: #8b5cf6;
+}
+</style>
+
+<div class="dashboard">
+    <a href="/messages" class="back-btn">
+        <i class="fas fa-arrow-left"></i> Back to Inbox
+    </a>
+
+    <div class="message-detail-container">
+        <!-- Original Message -->
+        <div class="message-thread">
+            <div class="original-message">
+                <span class="message-badge badge-<%= message.type %>">
+                    <% if (message.type === 'warning') { %><i class="fas fa-exclamation-triangle"></i> Warning<% } %>
+                    <% if (message.type === 'pending') { %><i class="fas fa-clock"></i> Pending Action<% } %>
+                    <% if (message.type === 'welcome') { %><i class="fas fa-hand-sparkles"></i> Welcome<% } %>
+                    <% if (message.type === 'general') { %><i class="fas fa-envelope"></i> Message<% } %>
+                </span>
+                
+                <h1 class="message-subject-large"><%= message.subject %></h1>
+                
+                <div class="message-meta-large">
+                    <span><i class="fas fa-user-shield"></i> From: <%= message.admin_username %></span>
+                    <span><i class="fas fa-clock"></i> <%= new Date(message.created_at).toLocaleString() %></span>
+                </div>
+                
+                <div class="message-content-large">
+                    <%= message.message %>
+                </div>
+            </div>
+
+            <!-- Replies -->
+            <% if (replies.length > 0) { %>
+            <div class="replies-section">
+                <h3 style="margin: 0 0 20px; font-size: 16px; color: var(--text-secondary);">
+                    <i class="fas fa-comments"></i> Conversation (<%= replies.length %> replies)
+                </h3>
+                
+                <% replies.forEach(reply => { %>
+                <div class="reply-item <%= reply.is_from_admin ? 'admin-reply' : 'user-reply' %>">
+                    <div class="reply-avatar">
+                        <%= reply.sender_name.charAt(0).toUpperCase() %>
+                    </div>
+                    <div class="reply-content">
+                        <div class="reply-header">
+                            <span class="reply-sender"><%= reply.sender_name %></span>
+                            <span class="reply-time"><%= new Date(reply.created_at).toLocaleString() %></span>
+                        </div>
+                        <div style="font-size: 14px; line-height: 1.6;">
+                            <%= reply.message %>
+                        </div>
+                    </div>
+                </div>
+                <% }) %>
+            </div>
+            <% } %>
+        </div>
+
+        <!-- Reply Form -->
+        <div class="reply-form-section">
+            <h3><i class="fas fa-reply"></i> Send Reply</h3>
+            <form action="/messages/<%= message.id %>/reply" method="POST" class="reply-form">
+                <textarea name="reply_message" placeholder="Type your response here..." required></textarea>
+                <button type="submit">
+                    <i class="fas fa-paper-plane"></i> Send Reply
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

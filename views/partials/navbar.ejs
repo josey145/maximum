@@ -1,10 +1,12 @@
 <nav class="navbar">
     <div class="nav-container">
+        <!-- Logo -->
         <a href="/" class="logo">
             <div class="logo-icon">M</div>
-            <span>Margin Stallions Asset</span>
+            <span><%= site.name %></span>
         </a>
 
+        <!-- Desktop Navigation -->
         <div class="nav-links">
             <a href="/" class="nav-link">Home</a>
             <a href="/about" class="nav-link">About</a>
@@ -13,23 +15,47 @@
             
             <% if (user) { %>
                 <div class="user-menu">
-                    <button class="btn btn-outline" style="padding: 8px 20px;">
+                    <button class="btn btn-outline user-btn">
                         <i class="fas fa-user"></i>
                         <%= user.username %>
-                        <i class="fas fa-chevron-down" style="font-size: 12px;"></i>
+                        <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="user-dropdown">
                         <a href="/dashboard" class="dropdown-item">
                             <i class="fas fa-chart-line"></i> Dashboard
                         </a>
+                        <a href="/messages" style="position: relative; display: inline-flex; align-items: center;">
+                                <i class="fas fa-bell"></i>
+                                <% if (unreadMessages > 0) { %>
+                                    <span style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center;">
+                                        <%= unreadMessages %>
+                                    </span>
+                                <% } %>
+                            </a>
                         <% if (user.role === 'admin') { %>
                             <a href="/admin" class="dropdown-item">
                                 <i class="fas fa-shield-alt"></i> Admin Panel
                             </a>
+                            <a href="/admin/withdrawals" class="dropdown-item">
+                                <i class="fa-solid fa-money-bill-transfer"></i> Withdrawals
+                            </a>
+                            <a href="/admin/settings" class="dropdown-item">
+                                <i class="fas fa-cog"></i> Settings
+                            </a>
+                            <a href="/admin/messages" class="dropdown-item">
+                                <i class="fas fa-comments"></i> Messages
+                                <% if (typeof unreadCount !== 'undefined' && unreadCount > 0) { %>
+                                    <span class="badge"><%= unreadCount %></span>
+                                <% } %>
+                            </a>
+
+                            <a href="/admin/crypto-wallets" class="dropdown-item">
+                                <i class="fas fa-wallet"></i> Crypto Wallets
+                            </a>
                         <% } %>
-                        <hr style="border: none; border-top: 1px solid var(--border-color); margin: 8px 0;">
-                        <form action="/logout" method="POST" style="margin: 0;">
-                            <button type="submit" class="dropdown-item" style="width: 100%; text-align: left; background: none; border: none; cursor: pointer; color: var(--danger);">
+                        <hr style="margin: 8px 0; border-color: var(--border-color);">
+                        <form action="/logout" method="POST">
+                            <button type="submit" class="dropdown-item logout-btn">
                                 <i class="fas fa-sign-out-alt"></i> Logout
                             </button>
                         </form>
@@ -37,19 +63,89 @@
                 </div>
             <% } else { %>
                 <a href="/login" class="nav-link">Login</a>
-                <a href="/register" class="btn btn-primary" style="padding: 10px 24px;">Get Started</a>
+                <a href="/register" class="btn btn-primary">Get Started</a>
             <% } %>
         </div>
 
-        <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+        <!-- Mobile Menu Button -->
+        <button class="mobile-menu-btn" id="mobileMenuBtn">
             <i class="fas fa-bars"></i>
         </button>
     </div>
-</nav>
 
-<script>
-    function toggleMobileMenu() {
-        // Mobile menu toggle logic can be added here
-        alert('Mobile menu - Add sliding menu implementation');
-    }
-</script>
+    <!-- Transparent Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <div class="mobile-menu-overlay" id="mobileOverlay"></div>
+        
+        <div class="mobile-menu-panel">
+            <div class="mobile-menu-header">
+                <a href="/" class="logo">
+                    <div class="logo-icon">M</div>
+                    <span><%= site.name %></span>
+                </a>
+                <button class="close-menu-btn" id="closeMenuBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="mobile-menu-links">
+    <a href="/" class="mobile-link">Home</a>
+    <a href="/about" class="mobile-link">About</a>
+    <a href="/faq" class="mobile-link">FAQ</a>
+    <a href="/terms" class="mobile-link">Terms</a>
+    
+    <% if (user) { %>
+        <a href="/dashboard" class="mobile-link">
+            <i class="fas fa-chart-line"></i> Dashboard
+        </a>
+        <a href="/messages" class="mobile-link">
+            <i class="fas fa-inbox"></i> Inbox
+            <% if (typeof unreadMessages !== 'undefined' && unreadMessages > 0) { %>
+                <span class="badge"><%= unreadMessages %></span>
+            <% } %>
+        </a>
+        <% if (user.role === 'admin') { %>
+            <a href="/admin" class="mobile-link">
+                <i class="fas fa-shield-alt"></i> Admin Panel
+            </a>
+            <a href="/admin/withdrawals" class="mobile-link">
+                <i class="fas fa-money-bill-transfer"></i> Withdrawals
+            </a>
+            <a href="/admin/settings" class="mobile-link">
+                <i class="fas fa-cog"></i> Settings
+            </a>
+            <a href="/admin/messages" class="mobile-link">
+                <i class="fas fa-comments"></i> Messages
+                <% if (typeof unreadCount !== 'undefined' && unreadCount > 0) { %>
+                    <span id="msgBadge" class="badge"><%= unreadCount %></span>
+                <% } %>
+            </a>
+        <% } %>
+        <form action="/logout" method="POST" style="margin-top: 20px;">
+            <button type="submit" class="mobile-link logout-btn">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </form>
+    <% } else { %>
+        <a href="/login" class="mobile-link">Login</a>
+        <a href="/register" class="btn btn-primary mobile-cta">Get Started</a>
+    <% } %>
+</div>
+
+    <script>
+        const mobileMenu = document.getElementById('mobileMenu');
+        const mobileBtn  = document.getElementById('mobileMenuBtn');
+        const closeBtn   = document.getElementById('closeMenuBtn');
+        const overlay    = document.getElementById('mobileOverlay');
+
+        function openMobileMenu()  { mobileMenu.classList.add('active');    document.body.style.overflow = 'hidden'; }
+        function closeMobileMenu() { mobileMenu.classList.remove('active'); document.body.style.overflow = ''; }
+
+        mobileBtn.addEventListener('click', openMobileMenu);
+        closeBtn.addEventListener('click',  closeMobileMenu);
+        overlay.addEventListener('click',   closeMobileMenu);
+        document.querySelectorAll('.mobile-link').forEach(link => {
+            link.addEventListener('click', closeMobileMenu);
+        });
+    </script>
+</nav>

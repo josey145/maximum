@@ -1,0 +1,430 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<style>
+    .trading-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px 16px;
+    }
+
+    .trading-header {
+        margin-bottom: 24px;
+    }
+
+    .trading-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: #f4f4f5;
+        margin-bottom: 8px;
+    }
+
+    .trading-grid {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 24px;
+    }
+
+    .chart-card {
+        background: #111118;
+        border: 1px solid #1e1e2e;
+        border-radius: 20px;
+        padding: 24px;
+    }
+
+    .trade-panel {
+        background: #111118;
+        border: 1px solid #1e1e2e;
+        border-radius: 20px;
+        padding: 24px;
+        height: fit-content;
+    }
+
+    .trade-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+
+    .trade-tab {
+        flex: 1;
+        padding: 12px;
+        border-radius: 10px;
+        border: none;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .trade-tab.buy {
+        background: rgba(34,197,94,0.1);
+        color: #22c55e;
+    }
+
+    .trade-tab.buy.active {
+        background: #22c55e;
+        color: white;
+    }
+
+    .trade-tab.sell {
+        background: rgba(239,68,68,0.1);
+        color: #ef4444;
+    }
+
+    .trade-tab.sell.active {
+        background: #ef4444;
+        color: white;
+    }
+
+    .trade-form {
+        display: none;
+    }
+
+    .trade-form.active {
+        display: block;
+    }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 12px;
+        color: #a1a1aa;
+        margin-bottom: 6px;
+    }
+
+    .form-input {
+        width: 100%;
+        background: #0d0d14;
+        border: 1px solid #1e1e2e;
+        border-radius: 10px;
+        padding: 14px;
+        color: #f4f4f5;
+        font-size: 16px;
+    }
+
+    .price-display {
+        background: #0d0d14;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .price-label {
+        font-size: 12px;
+        color: #52525b;
+        margin-bottom: 4px;
+    }
+
+    .price-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: #f4f4f5;
+    }
+
+    .btn-trade {
+        width: 100%;
+        padding: 16px;
+        border-radius: 12px;
+        border: none;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-trade.buy {
+        background: #22c55e;
+        color: white;
+    }
+
+    .btn-trade.sell {
+        background: #ef4444;
+        color: white;
+    }
+
+    .asset-list {
+        margin-top: 24px;
+    }
+
+    .asset-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px;
+        background: #0d0d14;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .asset-item:hover {
+        background: #1e1e2e;
+    }
+
+    .asset-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .asset-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+
+    .asset-name {
+        font-weight: 600;
+        color: #f4f4f5;
+    }
+
+    .asset-symbol {
+        font-size: 12px;
+        color: #52525b;
+    }
+
+    .asset-price {
+        text-align: right;
+    }
+
+    .asset-amount {
+        font-weight: 600;
+        color: #f4f4f5;
+    }
+
+    .asset-change {
+        font-size: 12px;
+    }
+
+    .asset-change.positive { color: #22c55e; }
+    .asset-change.negative { color: #ef4444; }
+
+    @media (max-width: 968px) {
+        .trading-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="trading-container">
+    <div class="trading-header">
+        <h1 class="trading-title">Trading</h1>
+        <p style="color: #52525b;">Buy and sell cryptocurrencies instantly</p>
+    </div>
+
+    <div class="trading-grid">
+        <!-- Chart & Assets -->
+        <div>
+            <div class="chart-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <div>
+                        <h3 style="font-size: 20px; font-weight: 600; color: #f4f4f5;">Bitcoin</h3>
+                        <p style="color: #52525b; font-size: 14px;">BTC/USD</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 24px; font-weight: 700; color: #f4f4f5;" id="chartPrice">$0.00</div>
+                        <div style="color: #22c55e; font-size: 14px;" id="chartChange">+0.00%</div>
+                    </div>
+                </div>
+                <canvas id="tradingChart" height="300"></canvas>
+            </div>
+
+            <div class="asset-list">
+                <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #f4f4f5;">Popular Assets</h3>
+                
+                <div class="asset-item">
+                    <div class="asset-info">
+                        <div class="asset-icon" style="background: rgba(247,147,26,0.1); color: #f7931a;">
+                            <i class="fab fa-bitcoin"></i>
+                        </div>
+                        <div>
+                            <div class="asset-name">Bitcoin</div>
+                            <div class="asset-symbol">BTC</div>
+                        </div>
+                    </div>
+                    <div class="asset-price">
+                        <div class="asset-amount">$68,420</div>
+                        <div class="asset-change positive">+2.4%</div>
+                    </div>
+                </div>
+
+                <div class="asset-item">
+                    <div class="asset-info">
+                        <div class="asset-icon" style="background: rgba(98,126,234,0.1); color: #627eea;">
+                            <i class="fab fa-ethereum"></i>
+                        </div>
+                        <div>
+                            <div class="asset-name">Ethereum</div>
+                            <div class="asset-symbol">ETH</div>
+                        </div>
+                    </div>
+                    <div class="asset-price">
+                        <div class="asset-amount">$3,520</div>
+                        <div class="asset-change positive">+1.8%</div>
+                    </div>
+                </div>
+
+                <div class="asset-item">
+                    <div class="asset-info">
+                        <div class="asset-icon" style="background: rgba(38,161,123,0.1); color: #26a17b;">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div>
+                            <div class="asset-name">Tether</div>
+                            <div class="asset-symbol">USDT</div>
+                        </div>
+                    </div>
+                    <div class="asset-price">
+                        <div class="asset-amount">$1.00</div>
+                        <div class="asset-change positive">+0.01%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trade Panel -->
+        <div class="trade-panel">
+            <div class="trade-tabs">
+                <button class="trade-tab buy active" onclick="switchTab('buy')">Buy</button>
+                <button class="trade-tab sell" onclick="switchTab('sell')">Sell</button>
+            </div>
+
+            <div class="price-display">
+                <div class="price-label">Current Price</div>
+                <div class="price-value" id="panelPrice">$0.00</div>
+            </div>
+
+            <form id="buyForm" class="trade-form active" action="/trading/buy" method="POST">
+                <div class="form-group">
+                    <label class="form-label">Amount (USD)</label>
+                    <input type="number" name="amount" class="form-input" placeholder="0.00" min="10" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">You will receive (BTC)</label>
+                    <input type="text" class="form-input" placeholder="0.00000000" readonly>
+                </div>
+                <button type="submit" class="btn-trade buy">
+                    <i class="fas fa-arrow-down"></i> Buy Bitcoin
+                </button>
+            </form>
+
+            <form id="sellForm" class="trade-form" action="/trading/sell" method="POST">
+                <div class="form-group">
+                    <label class="form-label">Amount (BTC)</label>
+                    <input type="number" name="amount" class="form-input" placeholder="0.00000000" step="0.00000001">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">You will receive (USD)</label>
+                    <input type="text" class="form-input" placeholder="0.00" readonly>
+                </div>
+                <button type="submit" class="btn-trade sell">
+                    <i class="fas fa-arrow-up"></i> Sell Bitcoin
+                </button>
+            </form>
+
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #1e1e2e;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="color: #52525b; font-size: 14px;">Available Balance</span>
+                    <span style="color: #f4f4f5; font-weight: 600;">$0.00</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: #52525b; font-size: 14px;">Trading Fee (0.1%)</span>
+                    <span style="color: #f4f4f5; font-weight: 600;">$0.00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    // Tab switching
+    function switchTab(tab) {
+        document.querySelectorAll('.trade-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.trade-form').forEach(f => f.classList.remove('active'));
+        
+        document.querySelector('.trade-tab.' + tab).classList.add('active');
+        document.getElementById(tab + 'Form').classList.add('active');
+    }
+
+    // Chart
+    const ctx = document.getElementById('tradingChart').getContext('2d');
+    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, 'rgba(139, 92, 246, 0.2)');
+    gradient.addColorStop(1, 'rgba(139, 92, 246, 0)');
+
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'BTC',
+                data: [],
+                borderColor: '#8b5cf6',
+                backgroundColor: gradient,
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { display: false },
+                y: {
+                    display: true,
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: {
+                        color: '#52525b',
+                        callback: v => '$' + v.toLocaleString()
+                    }
+                }
+            }
+        }
+    });
+
+    // Socket
+    if (typeof io !== 'undefined') {
+        const socket = io();
+        
+        socket.on('btcPrice', (data) => {
+            if (!data || !data.price) return;
+            
+            const price = data.price.toLocaleString();
+            const change = data.change24h ? data.change24h.toFixed(2) : '0.00';
+            const isPositive = data.change24h >= 0;
+            
+            document.getElementById('chartPrice').textContent = '$' + price;
+            document.getElementById('panelPrice').textContent = '$' + price;
+            
+            const changeEl = document.getElementById('chartChange');
+            changeEl.textContent = (isPositive ? '+' : '') + change + '%';
+            changeEl.style.color = isPositive ? '#22c55e' : '#ef4444';
+            
+            // Update chart (max 50 points)
+            if (chart.data.labels.length > 50) {
+                chart.data.labels.shift();
+                chart.data.datasets[0].data.shift();
+            }
+            chart.data.labels.push(chart.data.labels.length);
+            chart.data.datasets[0].data.push(data.price);
+            chart.update('none');
+        });
+    }
+</script>

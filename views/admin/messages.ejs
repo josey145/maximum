@@ -1,0 +1,553 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<style>
+.messaging-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 24px;
+}
+
+.users-sidebar {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    height: fit-content;
+}
+
+.sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+    color: white;
+}
+
+.sidebar-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.user-search {
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.user-search input {
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--secondary-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 13px;
+}
+
+.users-list {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.user-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    color: inherit;
+}
+
+.user-item:hover {
+    background: rgba(139, 92, 246, 0.05);
+}
+
+.user-item.has-unread {
+    background: rgba(239, 68, 68, 0.05);
+    border-left: 3px solid #ef4444;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: white;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.user-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.user-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.user-meta {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.unread-badge {
+    background: #ef4444;
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    min-width: 20px;
+    text-align: center;
+}
+
+.main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.compose-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.card-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.card-body {
+    padding: 24px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--secondary-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+    box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.form-group textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.type-select {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.type-option {
+    position: relative;
+}
+
+.type-option input {
+    position: absolute;
+    opacity: 0;
+}
+
+.type-option label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    background: var(--secondary-bg);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.type-option input:checked + label {
+    border-color: #8b5cf6;
+    background: rgba(139, 92, 246, 0.1);
+    color: #8b5cf6;
+}
+
+.send-btn {
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+    color: white;
+    border: none;
+    padding: 14px 32px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.send-btn:hover {
+    opacity: 0.9;
+}
+
+.conversations-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.conversations-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.conversations-table th {
+    text-align: left;
+    padding: 14px 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+}
+
+.conversations-table td {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.conversation-row {
+    transition: background 0.2s;
+}
+
+.conversation-row:hover {
+    background: rgba(139, 92, 246, 0.03);
+}
+
+.conversation-row.unread {
+    background: rgba(139, 92, 246, 0.08);
+}
+
+.msg-type {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.type-warning { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+.type-pending { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+.type-welcome { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
+.type-general { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-unread { color: #ef4444; }
+.status-read { color: #22c55e; }
+.status-replied { color: #3b82f6; }
+
+.bulk-actions {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.user-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--secondary-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.user-checkbox input {
+    accent-color: #8b5cf6;
+}
+
+.user-checkbox:hover {
+    border-color: #8b5cf6;
+}
+</style>
+
+<div class="dashboard">
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">
+            <i class="fas fa-comments" style="color: #8b5cf6;"></i> User Messaging
+        </h1>
+        <p style="color: var(--text-secondary);">Send warnings, notices, and welcome messages to users</p>
+    </div>
+
+    <div class="messaging-container">
+        <!-- Users Sidebar -->
+        <div class="users-sidebar">
+            <div class="sidebar-header">
+                <h3><i class="fas fa-users"></i> Users</h3>
+            </div>
+            <div class="user-search">
+                <input type="text" id="userSearch" placeholder="Search users..." onkeyup="filterUsers()">
+            </div>
+            <div class="users-list" id="usersList">
+                <% users.forEach(user => { %>
+                <a href="/admin/messages/user/<%= user.id %>" class="user-item <%= user.unread_replies > 0 ? 'has-unread' : '' %>">
+                    <div class="user-avatar"><%= user.username.charAt(0).toUpperCase() %></div>
+                    <div class="user-info">
+                        <div class="user-name"><%= user.username %></div>
+                        <div class="user-meta">
+                            <%= user.unread_replies > 0 ? `${user.unread_replies} unread reply(s)` : 'No new messages' %>
+                        </div>
+                    </div>
+                    <% if (user.unread_replies > 0) { %>
+                    <span class="unread-badge"><%= user.unread_replies %></span>
+                    <% } %>
+                </a>
+                <% }) %>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Compose Message -->
+            <div class="compose-card">
+                <div class="card-header">
+                    <div class="header-icon" style="background: rgba(139,92,246,0.1); color: #8b5cf6;">
+                        <i class="fas fa-paper-plane"></i>
+                    </div>
+                    <div>
+                        <h3>Compose Message</h3>
+                        <p style="margin: 0; color: var(--text-secondary); font-size: 13px;">Send direct message to users</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form action="/admin/messages/send" method="POST" id="messageForm">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Select User</label>
+                                <select name="user_id" required>
+                                    <option value="">Choose a user...</option>
+                                    <% users.forEach(user => { %>
+                                    <option value="<%= user.id %>"><%= user.username %> (<%= user.email %>)</option>
+                                    <% }) %>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Message Type</label>
+                                <div class="type-select">
+                                    <div class="type-option">
+                                        <input type="radio" name="type" id="type-warning" value="warning" required>
+                                        <label for="type-warning"><i class="fas fa-exclamation-triangle"></i> Warning</label>
+                                    </div>
+                                    <div class="type-option">
+                                        <input type="radio" name="type" id="type-pending" value="pending" required>
+                                        <label for="type-pending"><i class="fas fa-clock"></i> Pending</label>
+                                    </div>
+                                    <div class="type-option">
+                                        <input type="radio" name="type" id="type-welcome" value="welcome" required>
+                                        <label for="type-welcome"><i class="fas fa-hand-sparkles"></i> Welcome</label>
+                                    </div>
+                                    <div class="type-option">
+                                        <input type="radio" name="type" id="type-general" value="general" checked required>
+                                        <label for="type-general"><i class="fas fa-envelope"></i> General</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label>Subject</label>
+                            <input type="text" name="subject" placeholder="Enter message subject..." required>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label>Message</label>
+                            <textarea name="message" placeholder="Type your message here..." required></textarea>
+                        </div>
+
+                        <button type="submit" class="send-btn">
+                            <i class="fas fa-paper-plane"></i> Send Message
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Recent Conversations -->
+            <div class="conversations-card">
+                <div class="card-header" style="border-bottom: 1px solid var(--border);">
+                    <div class="header-icon" style="background: rgba(34,197,94,0.1); color: #22c55e;">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <div>
+                        <h3>Recent Conversations</h3>
+                        <p style="margin: 0; color: var(--text-secondary); font-size: 13px;">Latest messages sent to users</p>
+                    </div>
+                </div>
+                <table class="conversations-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Type</th>
+                            <th>Subject</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% conversations.forEach(conv => { %>
+                        <tr class="conversation-row <%= conv.status === 'unread' ? 'unread' : '' %>">
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 12px;">
+                                        <%= conv.username.charAt(0).toUpperCase() %>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 600; font-size: 14px;"><%= conv.username %></div>
+                                        <div style="font-size: 12px; color: var(--text-secondary);"><%= conv.email %></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="msg-type type-<%= conv.type %>">
+                                    <% if (conv.type === 'warning') { %><i class="fas fa-exclamation-triangle"></i> Warning<% } %>
+                                    <% if (conv.type === 'pending') { %><i class="fas fa-clock"></i> Pending<% } %>
+                                    <% if (conv.type === 'welcome') { %><i class="fas fa-hand-sparkles"></i> Welcome<% } %>
+                                    <% if (conv.type === 'general') { %><i class="fas fa-envelope"></i> General<% } %>
+                                </span>
+                            </td>
+                            <td style="font-weight: 500;"><%= conv.subject %></td>
+                            <td>
+                                <span class="status-badge status-<%= conv.status %>">
+                                    <% if (conv.status === 'unread') { %><i class="fas fa-circle" style="font-size: 8px;"></i> Unread<% } %>
+                                    <% if (conv.status === 'read') { %><i class="fas fa-check"></i> Read<% } %>
+                                    <% if (conv.status === 'replied') { %><i class="fas fa-reply"></i> Replied (<%= conv.unread_count %>)<% } %>
+                                </span>
+                            </td>
+                            <td style="color: var(--text-secondary); font-size: 13px;">
+                                <%= new Date(conv.created_at).toLocaleString() %>
+                            </td>
+                            <td>
+                                <a href="/admin/messages/user/<%= conv.user_id %>" class="btn btn-sm" style="background: rgba(139,92,246,0.1); color: #8b5cf6; padding: 6px 14px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 500;">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function filterUsers() {
+    const search = document.getElementById('userSearch').value.toLowerCase();
+    const items = document.querySelectorAll('.user-item');
+    
+    items.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        item.style.display = text.includes(search) ? 'flex' : 'none';
+    });
+}
+
+// Auto-refresh unread counts every 30 seconds
+setInterval(async () => {
+    try {
+        const res = await fetch('/admin/messages/unread-count');
+        const data = await res.json();
+        // Update badge if you have one in navbar
+    } catch (e) {
+        console.error('Failed to fetch unread count');
+    }
+}, 30000);
+</script>
+
+<%- include('../partials/footer') %>

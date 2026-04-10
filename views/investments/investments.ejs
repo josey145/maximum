@@ -1,0 +1,730 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<link rel="stylesheet" href="../../css/investment.css">
+
+<%
+// ── Currency helpers available in this template ──────────────────────────────
+// formatCurrency(amount, code)  →  passed from router
+// user.currency                 →  user's selected display currency
+// user.balance_currency         →  currency the balance is stored in
+
+const dc = user.currency || 'USD';   // display currency shorthand
+
+// Currency symbol map (mirrors utils/currency.js formatCurrency)
+const SYMBOLS = {
+    USD:'$', EUR:'€', GBP:'£', JPY:'¥', CHF:'Fr', CAD:'C$', AUD:'A$',
+    CNY:'¥', INR:'₹', KRW:'₩', SGD:'S$', HKD:'HK$', MYR:'RM', IDR:'Rp',
+    THB:'฿', PHP:'₱', VND:'₫', PKR:'₨', BDT:'৳', AED:'د.إ', SAR:'﷼',
+    QAR:'QR', KWD:'KD', BHD:'BD', OMR:'OMR', JOD:'JD', TRY:'₺', ILS:'₪',
+    NGN:'₦', GHS:'₵', KES:'KSh', ZAR:'R', EGP:'E£', MAD:'MAD', TZS:'TSh',
+    UGX:'USh', ETB:'Br', XOF:'CFA', BRL:'R$', MXN:'$', ARS:'$', COP:'$',
+    CLP:'$', NOK:'kr', SEK:'kr', DKK:'kr', PLN:'zł', CZK:'Kč', HUF:'Ft',
+    RON:'lei', RUB:'₽', UAH:'₴'
+};
+const currSymbol = SYMBOLS[dc] || (dc + ' ');
+
+// Helper: format a number in the user's display currency
+// amounts coming from DB are stored in balance_currency; 
+// we pass pre-converted values from the router, so just format.
+function fmt(amount) {
+    const n = parseFloat(amount) || 0;
+    if (Math.abs(n) >= 1000) {
+        return currSymbol + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    return currSymbol + n.toFixed(2);
+}
+%>
+
+<div class="investments-page">
+
+    <!-- Flash Messages -->
+    <% if (success_msg && success_msg.length > 0) { %>
+        <div style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);color:#22c55e;padding:16px 20px;border-radius:12px;margin-bottom:24px;display:flex;align-items:center;gap:12px;">
+            <i class="fas fa-check-circle"></i> <%= success_msg %>
+        </div>
+    <% } %>
+    <% if (error_msg && error_msg.length > 0) { %>
+        <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#ef4444;padding:16px 20px;border-radius:12px;margin-bottom:24px;display:flex;align-items:center;gap:12px;">
+            <i class="fas fa-exclamation-circle"></i> <%= error_msg %>
+        </div>
+    <% } %>
+
+    <!-- Header -->
+    <div class="page-header">
+        <h1 class="page-title">Investments & Trading</h1>
+        <div class="balance-badge">
+            <i class="fas fa-wallet"></i>
+            <div class="balance-info">
+                <span class="balance-label">Available Balance</span>
+                <span class="balance-amount"><%= balanceFormatted %></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="stats-grid">
+        <div class="stat-card" style="--accent-color:#8b5cf6;">
+            <div class="stat-icon"><i class="fas fa-chart-pie"></i></div>
+            <div class="stat-label">Total Invested</div>
+            <div class="stat-value"><%= fmt(totalInvested) %></div>
+            <div class="stat-change neutral">Active capital</div>
+        </div>
+
+        <div class="stat-card" style="--accent-color:#22c55e;">
+            <div class="stat-icon"><i class="fas fa-coins"></i></div>
+            <div class="stat-label">Daily Earnings</div>
+            <div class="stat-value" style="color:#22c55e;">+<%= fmt(totalActiveEarnings) %></div>
+            <div class="stat-change positive"><i class="fas fa-arrow-up"></i> Passive income</div>
+        </div>
+
+        <div class="stat-card" style="--accent-color:#f59e0b;">
+            <div class="stat-icon"><i class="fas fa-trophy"></i></div>
+            <div class="stat-label">Total Earned</div>
+            <div class="stat-value" style="color:#f59e0b;"><%= fmt(totalEarned) %></div>
+            <div class="stat-change neutral">Lifetime returns</div>
+        </div>
+
+        <div class="stat-card" style="--accent-color:#3b82f6;">
+            <div class="stat-icon"><i class="fas fa-layer-group"></i></div>
+            <div class="stat-label">Active Positions</div>
+            <div class="stat-value"><%= activeCount || 0 %></div>
+            <div class="stat-change neutral"><%= completedCount || 0 %> completed</div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="action-section">
+        <div class="action-card" onclick="openFundModal()">
+            <div class="action-icon"><i class="fas fa-plus"></i></div>
+            <div class="action-title">Fund Trading Account</div>
+            <div class="action-desc">Add funds to your balance for active trading. Use these funds to open positions in forex, crypto, and other markets.</div>
+            <button class="action-btn"><i class="fas fa-wallet"></i> Add Funds</button>
+        </div>
+
+        <div class="action-card invest" onclick="scrollToPlans()">
+            <div class="action-icon"><i class="fas fa-seedling"></i></div>
+            <div class="action-title">Start Investment Plan</div>
+            <div class="action-desc">Invest in passive income plans with daily returns. Choose from Basic, Gold, or Premium plans.</div>
+            <button class="action-btn"><i class="fas fa-chart-line"></i> View Plans</button>
+        </div>
+    </div>
+
+    <!-- Investment Plans -->
+    <div id="plansSection">
+        <div class="section-header">
+            <h2 class="section-title"><i class="fas fa-rocket"></i> Investment Plans</h2>
+            <span style="font-size:12px;color:#52525b;margin-left:8px;">
+                Amounts shown in USD · your balance is in <strong style="color:#8b5cf6;"><%= dc %></strong>
+            </span>
+        </div>
+
+        <div class="plans-container">
+            <% if (plans && plans.length > 0) { %>
+                <% plans.forEach((plan) => { %>
+                    <div class="plan-card <%= plan.name === 'Gold' ? 'popular' : '' %>"
+                         style="--plan-color: <%= plan.color %>;">
+
+                        <% if (plan.name === 'Gold') { %>
+                            <div class="popular-badge">Most Popular</div>
+                        <% } %>
+
+                        <div class="plan-header">
+                            <div class="plan-icon"><i class="<%= plan.icon %>"></i></div>
+                            <div class="plan-name"><%= plan.name %></div>
+                        </div>
+
+                        <div class="plan-return">
+                            <%= plan.daily_return_percent %>% <span>daily return</span>
+                        </div>
+
+                        <p class="plan-desc"><%= plan.description %></p>
+
+                        <ul class="plan-features">
+                            <% if (plan.features) {
+                                let features = [];
+                                try {
+                                    features = typeof plan.features === 'string'
+                                        ? (plan.features.startsWith('[') ? JSON.parse(plan.features) : plan.features.split('|'))
+                                        : plan.features;
+                                } catch(e) {
+                                    features = ['Daily returns', 'Capital protection', 'Instant withdrawal'];
+                                }
+                            %>
+                                <% features.slice(0, 4).forEach(feature => { %>
+                                    <li><i class="fas fa-check-circle"></i> <%= feature %></li>
+                                <% }) %>
+                            <% } %>
+                        </ul>
+
+                        <div class="plan-range">
+                            <div class="range-item">
+                                <div class="range-label">Minimum</div>
+                                <div class="range-value">$<%= parseFloat(plan.min_amount).toFixed(0) %></div>
+                            </div>
+                            <div class="range-item">
+                                <div class="range-label">Maximum</div>
+                                <div class="range-value">$<%= parseFloat(plan.max_amount).toFixed(0) %></div>
+                            </div>
+                            <div class="range-item">
+                                <div class="range-label">Duration</div>
+                                <div class="range-value"><%= plan.duration_days %> days</div>
+                            </div>
+                        </div>
+
+                        <button class="btn-select-plan"
+                            onclick="openInvestModal(
+                                '<%= plan.id %>',
+                                '<%= plan.name %>',
+                                <%= plan.min_amount %>,
+                                <%= plan.max_amount %>,
+                                <%= plan.daily_return_percent %>,
+                                <%= plan.duration_days %>,
+                                '<%= plan.color %>',
+                                '<%= plan.icon %>'
+                            )">
+                            <i class="fas fa-plus"></i> Select Plan
+                        </button>
+                    </div>
+                <% }) %>
+            <% } else { %>
+                <div class="empty-state">
+                    <div class="empty-icon"><i class="fas fa-rocket"></i></div>
+                    <div class="empty-title">No Plans Available</div>
+                    <p class="empty-text">Investment plans will be available soon.</p>
+                </div>
+            <% } %>
+        </div>
+    </div>
+
+    <!-- Active Investments -->
+    <div class="section-header">
+        <h2 class="section-title"><i class="fas fa-chart-pie"></i> My Active Investments</h2>
+    </div>
+
+    <% if (investments && investments.length > 0) { %>
+        <div class="investments-list">
+            <% investments.forEach(inv => { %>
+                <div class="investment-item" style="--investment-color: <%= inv.color || '#8b5cf6' %>;">
+                    <div class="investment-header">
+                        <div class="investment-info">
+                            <div class="investment-icon">
+                                <i class="<%= inv.icon || 'fas fa-chart-line' %>"></i>
+                            </div>
+                            <div>
+                                <div class="investment-title"><%= inv.plan_name || 'Investment' %></div>
+                                <div class="investment-date">Started <%= new Date(inv.created_at).toLocaleDateString() %></div>
+                            </div>
+                        </div>
+                        <span class="investment-status">Active</span>
+                    </div>
+
+                    <div class="investment-stats">
+                        <div class="investment-stat">
+                            <span class="stat-label-small">Invested</span>
+                            <span class="stat-value-small"><%= fmt(inv.invested_amount || inv.amount || 0) %></span>
+                        </div>
+                        <div class="investment-stat">
+                            <span class="stat-label-small">Current Value</span>
+                            <span class="stat-value-small"><%= fmt(inv.current_value || inv.invested_amount || inv.amount || 0) %></span>
+                        </div>
+                        <div class="investment-stat">
+                            <span class="stat-label-small">Daily Return</span>
+                            <span class="stat-value-small profit">+<%= fmt(inv.daily_earning || 0) %></span>
+                        </div>
+                        <div class="investment-stat">
+                            <span class="stat-label-small">Profit/Loss</span>
+                            <span class="stat-value-small <%= (inv.profit_loss || 0) >= 0 ? 'profit' : 'loss' %>">
+                                <%= (inv.profit_loss || 0) >= 0 ? '+' : '' %><%= fmt(inv.profit_loss || 0) %>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="progress-section">
+                        <div class="progress-header">
+                            <span><%= inv.days_active || 0 %> days active</span>
+                            <span><%= Math.max(0, (inv.duration_days || 30) - (inv.days_active || 0)) %> days remaining</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width:<%= Math.min(inv.progress_percent || 0, 100) %>%"></div>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+    <% } else { %>
+        <div class="empty-state">
+            <div class="empty-icon"><i class="fas fa-seedling"></i></div>
+            <div class="empty-title">No Active Investments</div>
+            <p class="empty-text">Choose an investment plan above to start earning daily returns.</p>
+            <button class="btn-select-plan" onclick="scrollToPlans()" style="max-width:200px;margin:0 auto;">
+                <i class="fas fa-rocket"></i> Start Investing
+            </button>
+        </div>
+    <% } %>
+</div>
+
+
+<!-- ===== INVEST PLAN MODAL ===== -->
+<div id="investModal" class="modal-overlay">
+    <div class="modal-container">
+        <div class="modal-header">
+            <div class="modal-icon-large" id="modalIcon"><i class="fas fa-chart-line"></i></div>
+            <h3 class="modal-title" id="modalTitle">Start Investment</h3>
+            <p class="modal-subtitle">Choose your payment method</p>
+        </div>
+
+        <form id="investForm" action="/investments/action" method="POST">
+            <div class="modal-body">
+                <input type="hidden" name="action_type" value="invest_plan">
+                <input type="hidden" name="plan_id" id="planId">
+
+                <!-- Amount (always USD — plan limits are defined in USD) -->
+                <div class="form-group">
+                    <label class="form-label">Investment Amount (USD)</label>
+                    <div style="position:relative;">
+                        <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#52525b;font-weight:600;">$</span>
+                        <input type="number" name="amount" id="investAmount" class="form-input"
+                               style="padding-left:28px;"
+                               placeholder="Enter amount in USD" step="0.01" required>
+                    </div>
+                    <div class="input-hint">
+                        <span>Min: $<span id="minAmount">0</span></span>
+                        <span>Max: $<span id="maxAmount">0</span></span>
+                    </div>
+                    <!-- Live converted preview -->
+                    <div id="convertedPreview" style="margin-top:6px;font-size:12px;color:#8b5cf6;display:none;">
+                        ≈ <span id="convertedAmount"></span> <span id="convertedCurrency"><%= dc %></span>
+                        <span style="color:#52525b;margin-left:4px;">(will be deducted from your balance)</span>
+                    </div>
+                </div>
+
+                <!-- Payment Method -->
+                <div class="form-group">
+                    <label class="form-label">Payment Method</label>
+                    <div class="payment-options">
+
+                        <label class="payment-option">
+                            <input type="radio" name="payment_method" value="balance" checked
+                                   onchange="togglePayment('balance')">
+                            <div class="payment-card">
+                                <div class="payment-icon-box"><i class="fas fa-wallet" style="color:#8b5cf6;"></i></div>
+                                <div class="payment-info">
+                                    <div class="payment-name">Account Balance</div>
+                                    <div class="payment-desc"><%= balanceFormatted %> available</div>
+                                </div>
+                                <i class="fas fa-check-circle payment-check" style="color:#8b5cf6;"></i>
+                            </div>
+                        </label>
+
+                        <label class="payment-option">
+                            <input type="radio" name="payment_method" value="card"
+                                   onchange="togglePayment('card')">
+                            <div class="payment-card">
+                                <div class="payment-icon-box"><i class="fas fa-credit-card" style="color:#3b82f6;"></i></div>
+                                <div class="payment-info">
+                                    <div class="payment-name">Credit/Debit Card</div>
+                                    <div class="payment-desc">Visa, Mastercard, Amex</div>
+                                </div>
+                                <i class="fas fa-check-circle payment-check" style="color:#8b5cf6;opacity:0;"></i>
+                            </div>
+                        </label>
+
+                        <label class="payment-option">
+                            <input type="radio" name="payment_method" value="crypto"
+                                   onchange="togglePayment('crypto')">
+                            <div class="payment-card">
+                                <div class="payment-icon-box"><i class="fab fa-bitcoin" style="color:#f59e0b;"></i></div>
+                                <div class="payment-info">
+                                    <div class="payment-name">Cryptocurrency</div>
+                                    <div class="payment-desc">BTC, ETH, USDT</div>
+                                </div>
+                                <i class="fas fa-check-circle payment-check" style="color:#8b5cf6;opacity:0;"></i>
+                            </div>
+                        </label>
+
+                    </div>
+                </div>
+
+                <!-- Card Details -->
+                <div id="investCardDetails" style="display:none;background:#0d0d14;border:1px solid #1e1e2e;border-radius:12px;padding:20px;margin-top:4px;">
+                    <div class="form-group">
+                        <label class="form-label">Card Number</label>
+                        <input type="text" name="card_number" id="cardNumber" class="form-input"
+                               placeholder="1234 5678 9012 3456" maxlength="19">
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <div class="form-group">
+                            <label class="form-label">Expiry Date</label>
+                            <input type="text" name="card_expiry" id="cardExpiry" class="form-input"
+                                   placeholder="MM/YY" maxlength="5">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">CVC</label>
+                            <input type="text" name="card_cvc" id="cardCvc" class="form-input"
+                                   placeholder="123" maxlength="3">
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label class="form-label">Cardholder Name</label>
+                        <input type="text" name="card_name" id="cardName" class="form-input" placeholder="JOHN DOE">
+                    </div>
+                </div>
+
+                <!-- Crypto Selection -->
+                <div id="investCryptoSelection" style="display:none;margin-top:4px;">
+                    <label class="form-label">Select Cryptocurrency</label>
+                    <div class="crypto-grid" style="margin-top:10px;">
+                        <% if (cryptoAddresses && cryptoAddresses.length > 0) { %>
+                            <% cryptoAddresses.forEach((crypto, index) => { %>
+                                <label class="crypto-option">
+                                    <input type="radio" name="crypto_type" value="<%= crypto.symbol %>"
+                                           <%= index === 0 ? 'checked' : '' %>>
+                                    <div class="crypto-card">
+                                        <div class="crypto-symbol"><%= crypto.symbol %></div>
+                                        <div class="crypto-network"><%= crypto.network %></div>
+                                    </div>
+                                </label>
+                            <% }) %>
+                        <% } else { %>
+                            <div style="grid-column:span 2;text-align:center;color:#52525b;padding:20px;">
+                                No crypto payment options available
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+
+                <!-- Summary -->
+                <div class="summary-box" style="margin-top:16px;">
+                    <div class="summary-row">
+                        <span class="summary-label">Daily Return (USD)</span>
+                        <span class="summary-value" id="previewDaily">$0.00</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Duration</span>
+                        <span class="summary-value" id="previewDuration">0 days</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Total Expected Return (USD)</span>
+                        <span class="summary-value total" id="previewTotal">$0.00</span>
+                    </div>
+                    <% if (dc !== 'USD') { %>
+                    <div class="summary-row" style="border-top:1px solid #1e1e2e;padding-top:10px;margin-top:4px;">
+                        <span class="summary-label" style="color:#8b5cf6;">Balance Deduction (<%= dc %>)</span>
+                        <span class="summary-value" id="previewDeduction" style="color:#8b5cf6;">—</span>
+                    </div>
+                    <% } %>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-lock"></i> Confirm Investment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- ===== FUND ACCOUNT MODAL ===== -->
+<div id="fundModal" class="modal-overlay">
+    <div class="modal-container">
+        <div class="modal-header">
+            <div class="modal-icon-large" style="background:#22c55e;"><i class="fas fa-wallet"></i></div>
+            <h3 class="modal-title">Fund Trading Account</h3>
+            <p class="modal-subtitle">Add funds to your trading balance</p>
+        </div>
+
+        <form action="/investments/action" method="POST" id="fundForm">
+            <div class="modal-body">
+                <input type="hidden" name="action_type" value="fund_account">
+
+                <div class="form-group">
+                    <label class="form-label">Amount (USD)</label>
+                    <div style="position:relative;">
+                        <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#52525b;font-weight:600;">$</span>
+                        <input type="number" name="amount" class="form-input"
+                               style="padding-left:28px;"
+                               placeholder="Enter amount" step="0.01" min="10" required>
+                    </div>
+                    <div class="input-hint">
+                        <span>Min: $10</span>
+                        <span>Funds added to trading balance</span>
+                    </div>
+                </div>
+
+                <!-- Payment Method -->
+                <div class="form-group">
+                    <label class="form-label">Payment Method</label>
+                    <div class="payment-options">
+
+                        <label class="payment-option">
+                            <input type="radio" name="payment_method" value="card" checked
+                                   onchange="toggleFundPayment('card')">
+                            <div class="payment-card">
+                                <div class="payment-icon-box"><i class="fas fa-credit-card" style="color:#3b82f6;"></i></div>
+                                <div class="payment-info">
+                                    <div class="payment-name">Credit/Debit Card</div>
+                                    <div class="payment-desc">Instant deposit</div>
+                                </div>
+                                <i class="fas fa-check-circle fund-check" style="color:#8b5cf6;"></i>
+                            </div>
+                        </label>
+
+                        <label class="payment-option">
+                            <input type="radio" name="payment_method" value="crypto"
+                                   onchange="toggleFundPayment('crypto')">
+                            <div class="payment-card">
+                                <div class="payment-icon-box"><i class="fab fa-bitcoin" style="color:#f59e0b;"></i></div>
+                                <div class="payment-info">
+                                    <div class="payment-name">Cryptocurrency</div>
+                                    <div class="payment-desc">BTC, ETH, USDT</div>
+                                </div>
+                                <i class="fas fa-check-circle fund-check" style="color:#8b5cf6;opacity:0;"></i>
+                            </div>
+                        </label>
+
+                    </div>
+                </div>
+
+                <!-- Fund: Card Details -->
+                <div id="fundCardDetails" style="background:#0d0d14;border:1px solid #1e1e2e;border-radius:12px;padding:20px;margin-top:4px;">
+                    <div class="form-group">
+                        <label class="form-label">Card Number</label>
+                        <input type="text" name="card_number" id="fundCardNumber" class="form-input"
+                               placeholder="1234 5678 9012 3456" maxlength="19">
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <div class="form-group">
+                            <label class="form-label">Expiry Date</label>
+                            <input type="text" name="card_expiry" id="fundCardExpiry" class="form-input"
+                                   placeholder="MM/YY" maxlength="5">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">CVC</label>
+                            <input type="text" name="card_cvc" id="fundCardCvc" class="form-input"
+                                   placeholder="123" maxlength="3">
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label class="form-label">Cardholder Name</label>
+                        <input type="text" name="card_name" class="form-input" placeholder="JOHN DOE">
+                    </div>
+                </div>
+
+                <!-- Fund: Crypto Selection -->
+                <div id="fundCryptoSelection" style="display:none;margin-top:4px;">
+                    <label class="form-label">Select Cryptocurrency</label>
+                    <div class="crypto-grid" style="margin-top:10px;">
+                        <% if (cryptoAddresses && cryptoAddresses.length > 0) { %>
+                            <% cryptoAddresses.forEach((crypto, index) => { %>
+                                <label class="crypto-option">
+                                    <input type="radio" name="fund_crypto_type" value="<%= crypto.symbol %>"
+                                           <%= index === 0 ? 'checked' : '' %>>
+                                    <div class="crypto-card">
+                                        <div class="crypto-symbol"><%= crypto.symbol %></div>
+                                        <div class="crypto-network"><%= crypto.network %></div>
+                                    </div>
+                                </label>
+                            <% }) %>
+                        <% } else { %>
+                            <div style="grid-column:span 2;text-align:center;color:#52525b;padding:20px;">
+                                No crypto payment options available
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeFundModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary" style="background:#22c55e;">
+                    <i class="fas fa-plus"></i> Add Funds
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<script>
+// ── Constants injected from server ──────────────────────────────────────────
+const USER_CURRENCY    = '<%= dc %>';           // e.g. 'PHP', 'EUR', 'NGN'
+const CURRENCY_SYMBOL  = '<%= currSymbol %>';   // e.g. '₱', '€', '₦'
+
+// Exchange rate: USD → user currency (fetched async, see below)
+// We use this only for the live preview; the backend does the authoritative conversion.
+let usdToUserRate = null;
+
+// Fetch the live rate once on page load so the modal preview is accurate
+(async function fetchRate() {
+    if (USER_CURRENCY === 'USD') { usdToUserRate = 1; return; }
+    try {
+        const res  = await fetch('/api/rate?from=USD&to=' + USER_CURRENCY);
+        const data = await res.json();
+        if (data && data.rate) usdToUserRate = parseFloat(data.rate);
+    } catch (e) {
+        console.warn('Could not fetch live rate for preview:', e);
+    }
+})();
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function fmtUSD(amount) {
+    const n = parseFloat(amount) || 0;
+    return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function fmtUser(amount) {
+    const n = parseFloat(amount) || 0;
+    if (Math.abs(n) >= 1000) {
+        return CURRENCY_SYMBOL + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    return CURRENCY_SYMBOL + n.toFixed(2);
+}
+
+// ── Plan state ───────────────────────────────────────────────────────────────
+let currentPlan = null;
+
+// ── Open / Close modals ──────────────────────────────────────────────────────
+
+function openInvestModal(id, name, min, max, dailyReturn, duration, color, icon) {
+    currentPlan = { id, name, min: parseFloat(min), max: parseFloat(max), dailyReturn: parseFloat(dailyReturn), duration: parseInt(duration), color };
+
+    document.getElementById('planId').value              = id;
+    document.getElementById('modalTitle').textContent    = 'Invest in ' + name;
+    document.getElementById('minAmount').textContent     = parseFloat(min).toFixed(0);
+    document.getElementById('maxAmount').textContent     = parseFloat(max).toFixed(0);
+    document.getElementById('modalIcon').style.background = color;
+    document.getElementById('modalIcon').innerHTML       = '<i class="' + icon + '"></i>';
+
+    const amountInput = document.getElementById('investAmount');
+    amountInput.min         = min;
+    amountInput.max         = max;
+    amountInput.placeholder = 'Min $' + parseFloat(min).toFixed(0) + ' – Max $' + parseFloat(max).toFixed(0);
+    amountInput.value       = '';
+
+    togglePayment('balance');
+    document.querySelector('input[name="payment_method"][value="balance"]').checked = true;
+
+    updatePreview();
+    document.getElementById('investModal').classList.add('active');
+}
+
+function openFundModal()  { document.getElementById('fundModal').classList.add('active'); }
+function closeModal()     { document.getElementById('investModal').classList.remove('active'); document.getElementById('investForm').reset(); togglePayment('balance'); }
+function closeFundModal() { document.getElementById('fundModal').classList.remove('active'); }
+function scrollToPlans()  { document.getElementById('plansSection').scrollIntoView({ behavior: 'smooth' }); }
+
+// ── Invest modal: toggle payment sections ────────────────────────────────────
+
+function togglePayment(method) {
+    document.getElementById('investCardDetails').style.display   = method === 'card'   ? 'block' : 'none';
+    document.getElementById('investCryptoSelection').style.display = method === 'crypto' ? 'block' : 'none';
+
+    const cardRequired = method === 'card';
+    ['cardNumber','cardExpiry','cardCvc','cardName'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.required = cardRequired;
+    });
+
+    // Show converted preview only when paying with balance and currency ≠ USD
+    const preview = document.getElementById('convertedPreview');
+    if (preview) preview.style.display = (method === 'balance' && USER_CURRENCY !== 'USD') ? 'block' : 'none';
+
+    document.querySelectorAll('#investModal .payment-check').forEach(icon => icon.style.opacity = '0');
+    const sel = document.querySelector('#investModal input[name="payment_method"][value="' + method + '"]');
+    if (sel) sel.closest('.payment-option').querySelector('.payment-check').style.opacity = '1';
+
+    updatePreview();
+}
+
+// ── Fund modal: toggle payment sections ──────────────────────────────────────
+
+function toggleFundPayment(method) {
+    document.getElementById('fundCardDetails').style.display   = method === 'card'   ? 'block' : 'none';
+    document.getElementById('fundCryptoSelection').style.display = method === 'crypto' ? 'block' : 'none';
+
+    document.querySelectorAll('#fundModal .fund-check').forEach(icon => icon.style.opacity = '0');
+    const sel = document.querySelector('#fundModal input[name="payment_method"][value="' + method + '"]');
+    if (sel) sel.closest('.payment-option').querySelector('.fund-check').style.opacity = '1';
+
+    // Rename fund crypto inputs so backend receives crypto_type
+    document.querySelectorAll('#fundCryptoSelection input[name="fund_crypto_type"]').forEach(el => {
+        el.name = 'crypto_type';
+    });
+}
+
+// ── Card number / expiry formatting ─────────────────────────────────────────
+
+function formatCardNumber(input) {
+    let v = input.value.replace(/\D/g, '');
+    v = v.replace(/(\d{4})(?=\d)/g, '$1 ');
+    input.value = v;
+}
+function formatExpiry(input) {
+    let v = input.value.replace(/\D/g, '');
+    if (v.length >= 2) v = v.substring(0, 2) + '/' + v.substring(2, 4);
+    input.value = v;
+}
+
+document.getElementById('cardNumber')?.addEventListener('input',     function() { formatCardNumber(this); });
+document.getElementById('cardExpiry')?.addEventListener('input',     function() { formatExpiry(this); });
+document.getElementById('fundCardNumber')?.addEventListener('input', function() { formatCardNumber(this); });
+document.getElementById('fundCardExpiry')?.addEventListener('input', function() { formatExpiry(this); });
+
+// ── Preview calculator ───────────────────────────────────────────────────────
+
+function updatePreview() {
+    if (!currentPlan) return;
+    const amount = parseFloat(document.getElementById('investAmount').value) || 0;
+    const daily  = (amount * currentPlan.dailyReturn) / 100;
+    const total  = daily * currentPlan.duration;
+
+    document.getElementById('previewDaily').textContent    = fmtUSD(daily);
+    document.getElementById('previewDuration').textContent = currentPlan.duration + ' days';
+    document.getElementById('previewTotal').textContent    = fmtUSD(total);
+
+    // Converted balance deduction preview (only when paying with balance in non-USD)
+    const deductEl   = document.getElementById('previewDeduction');
+    const convertEl  = document.getElementById('convertedAmount');
+    const selectedMethod = document.querySelector('#investModal input[name="payment_method"]:checked')?.value;
+
+    if (USER_CURRENCY !== 'USD' && selectedMethod === 'balance') {
+        if (usdToUserRate && amount > 0) {
+            const converted = amount * usdToUserRate;
+            if (deductEl)  deductEl.textContent  = fmtUser(converted);
+            if (convertEl) convertEl.textContent  = fmtUser(converted);
+        } else {
+            if (deductEl)  deductEl.textContent  = '—';
+            if (convertEl) convertEl.textContent  = '...';
+        }
+    } else {
+        if (deductEl)  deductEl.textContent = fmtUSD(amount);
+    }
+}
+
+document.getElementById('investAmount').addEventListener('input', updatePreview);
+
+// ── Close on backdrop click ──────────────────────────────────────────────────
+
+document.querySelectorAll('.modal-overlay').forEach(modal => {
+    modal.addEventListener('click', function(e) {
+        if (e.target === this) this.classList.remove('active');
+    });
+});
+
+// ── Form validation ──────────────────────────────────────────────────────────
+
+document.getElementById('investForm').addEventListener('submit', function(e) {
+    const amount = parseFloat(document.getElementById('investAmount').value);
+    if (currentPlan && (amount < currentPlan.min || amount > currentPlan.max)) {
+        e.preventDefault();
+        alert('Amount must be between $' + currentPlan.min.toFixed(0) + ' and $' + currentPlan.max.toFixed(0));
+    }
+});
+</script>
+
+<%- include('../partials/footer') %>
