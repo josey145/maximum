@@ -1,4 +1,4 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 const db = require('../config/db');
 
 // Cache site name to avoid DB hits
@@ -17,11 +17,11 @@ async function getSiteName() {
         const [settings] = await db.execute(
             "SELECT setting_value FROM site_settings WHERE setting_key = 'site_name'"
         );
-        cachedSiteName = settings[0]?.setting_value || 'Maximum';
+        cachedSiteName = settings[0]?.setting_value || 'CUE-ACTION';
         cacheTime = now;
         return cachedSiteName;
     } catch (e) {
-        return 'Maximum';
+        return 'CUE-ACTION';
     }
 }
 
@@ -31,17 +31,12 @@ function clearSiteNameCache() {
     cacheTime = null;
 }
 
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
-});
+// Initialize Resend with API key
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 /**
  * Generic email sender with dynamic site name
- * @param {object} options - { to, subject, html, siteName }
+ * @param {object} options - { to, subject, html }
  */
 const sendEmail = async ({ to, subject, html }) => {
     try {
@@ -55,15 +50,15 @@ const sendEmail = async ({ to, subject, html }) => {
                 .replace(/Maximum/g, siteName);
         }
         
-        const info = await transporter.sendMail({
-            from: `"${siteName}" <${process.env.EMAIL_USER}>`,
-            to,
+        const data = await resend.emails.send({
+            from: `${siteName} <support@cue-action.online>`,
+            to: to,
             subject: subject.replace(/Maximum/g, siteName),
             html: processedHtml
         });
         
-        console.log(`✅ Email sent to ${to}: ${info.messageId}`);
-        return info;
+        console.log(`✅ Email sent to ${to}: ${data.id}`);
+        return data;
     } catch (error) {
         console.error(`❌ Failed to send email to ${to}:`, error.message);
         throw error;
