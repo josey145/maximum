@@ -8,12 +8,16 @@
 
         <!-- Desktop Navigation -->
         <div class="nav-links">
-            <a href="/" class="nav-link">Home</a>
-            <a href="/about" class="nav-link">About</a>
-            <a href="/faq" class="nav-link">FAQ</a>
-            <a href="/terms" class="nav-link">Terms</a>
-            
-            <% if (user) { %>
+            <% if (!user) { %>
+                <!-- ONLY SHOW FOR LOGGED-OUT USERS -->
+                <a href="/" class="nav-link">Home</a>
+                <a href="/about" class="nav-link">About</a>
+                <a href="/faq" class="nav-link">FAQ</a>
+                <a href="/terms" class="nav-link">Terms</a>
+                <a href="/login" class="nav-link">Login</a>
+                <a href="/register" class="btn btn-primary">Get Started</a>
+            <% } else { %>
+                <!-- LOGGED-IN USER MENU -->
                 <div class="user-menu">
                     <button class="btn btn-outline user-btn">
                         <i class="fas fa-user"></i>
@@ -21,26 +25,64 @@
                         <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="user-dropdown">
+                        <!-- USER LINKS -->
                         <a href="/dashboard" class="dropdown-item">
                             <i class="fas fa-chart-line"></i> Dashboard
                         </a>
-                        <a href="/messages" style="position: relative; display: inline-flex; align-items: center;">
-                                <i class="fas fa-bell"></i>
-                                <% if (unreadMessages > 0) { %>
-                                    <span style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center;">
-                                        <%= unreadMessages %>
-                                    </span>
-                                <% } %>
-                            </a>
+                        <a href="/trading" class="dropdown-item" style="position: relative;">
+                            <i class="fas fa-exchange-alt"></i> Trading
+                            <span class="trading-sticker" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: linear-gradient(135deg, #10b981, #059669); color: white; font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 8px rgba(16,185,129,0.3); animation: pulse 2s infinite;">LIVE</span>
+                        </a>
+                        <a href="/deposit" class="dropdown-item">
+                            <i class="fas fa-arrow-down"></i> Deposit
+                        </a>
+                        <a href="/transactions/withdraw/verify" class="dropdown-item">
+                            <i class="fas fa-arrow-up"></i> Withdraw
+                        </a>
+                        <a href="/investments" class="dropdown-item">
+                            <i class="fas fa-rocket"></i> Invest
+                        </a>
+                        <a href="/transactions/history" class="dropdown-item">
+                            <i class="fas fa-list"></i> Transactions
+                        </a>
+                        <a href="/messages" class="dropdown-item" style="position: relative; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-bell"></i> Messages
+                            <% if (typeof unreadMessages !== 'undefined' && unreadMessages > 0) { %>
+                                <span style="background: #ef4444; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center;">
+                                    <%= unreadMessages %>
+                                </span>
+                            <% } %>
+                        </a>
+                        <a href="/profile/settings" class="dropdown-item">
+                            <i class="fas fa-cog"></i> Settings
+                        </a>
+
+                        <!-- MOVED TOP NAV LINKS INTO DROPDOWN -->
+                        <hr style="margin: 8px 0; border-color: var(--border-color);">
+                        <a href="/" class="dropdown-item">
+                            <i class="fas fa-home"></i> Home
+                        </a>
+                        <a href="/about" class="dropdown-item">
+                            <i class="fas fa-info-circle"></i> About
+                        </a>
+                        <a href="/faq" class="dropdown-item">
+                            <i class="fas fa-question-circle"></i> FAQ
+                        </a>
+                        <a href="/terms" class="dropdown-item">
+                            <i class="fas fa-file-contract"></i> Terms
+                        </a>
+
+                        <!-- ADMIN LINKS -->
                         <% if (user.role === 'admin') { %>
+                            <hr style="margin: 8px 0; border-color: var(--border-color);">
                             <a href="/admin" class="dropdown-item">
                                 <i class="fas fa-shield-alt"></i> Admin Panel
                             </a>
                             <a href="/admin/withdrawals" class="dropdown-item">
-                                <i class="fa-solid fa-money-bill-transfer"></i> Withdrawals
+                                <i class="fas fa-money-bill-transfer"></i> Withdrawals
                             </a>
                             <a href="/admin/settings" class="dropdown-item">
-                                <i class="fas fa-cog"></i> Settings
+                                <i class="fas fa-cog"></i> Admin Settings
                             </a>
                             <a href="/admin/messages" class="dropdown-item">
                                 <i class="fas fa-comments"></i> Messages
@@ -52,6 +94,7 @@
                                 <i class="fas fa-wallet"></i> Crypto Wallets
                             </a>
                         <% } %>
+
                         <hr style="margin: 8px 0; border-color: var(--border-color);">
                         <form action="/logout" method="POST">
                             <button type="submit" class="dropdown-item logout-btn">
@@ -60,9 +103,6 @@
                         </form>
                     </div>
                 </div>
-            <% } else { %>
-                <a href="/login" class="nav-link">Login</a>
-                <a href="/register" class="btn btn-primary">Get Started</a>
             <% } %>
         </div>
 
@@ -72,10 +112,10 @@
         </button>
     </div>
 
-    <!-- Transparent Mobile Menu -->
+    <!-- Mobile Menu -->
     <div class="mobile-menu" id="mobileMenu">
         <div class="mobile-menu-overlay" id="mobileOverlay"></div>
-        
+
         <div class="mobile-menu-panel">
             <div class="mobile-menu-header">
                 <a href="/" class="logo">
@@ -86,16 +126,36 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
+
             <div class="mobile-menu-links">
-                <a href="/" class="mobile-link">Home</a>
-                <a href="/about" class="mobile-link">About</a>
-                <a href="/faq" class="mobile-link">FAQ</a>
-                <a href="/terms" class="mobile-link">Terms</a>
-                
-                <% if (user) { %>
+                <% if (!user) { %>
+                    <!-- ONLY SHOW FOR LOGGED-OUT USERS -->
+                    <a href="/" class="mobile-link">Home</a>
+                    <a href="/about" class="mobile-link">About</a>
+                    <a href="/faq" class="mobile-link">FAQ</a>
+                    <a href="/terms" class="mobile-link">Terms</a>
+                    <a href="/login" class="mobile-link">Login</a>
+                    <a href="/register" class="btn btn-primary mobile-cta">Get Started</a>
+                <% } else { %>
+                    <!-- LOGGED-IN USER LINKS -->
                     <a href="/dashboard" class="mobile-link">
                         <i class="fas fa-chart-line"></i> Dashboard
+                    </a>
+                    <a href="/trading" class="mobile-link" style="position: relative;">
+                        <i class="fas fa-exchange-alt"></i> Trading
+                        <span class="trading-sticker" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: linear-gradient(135deg, #10b981, #059669); color: white; font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 8px rgba(16,185,129,0.3); animation: pulse 2s infinite;">LIVE</span>
+                    </a>
+                    <a href="/deposit" class="mobile-link">
+                        <i class="fas fa-arrow-down"></i> Deposit
+                    </a>
+                    <a href="/transactions/withdraw/verify" class="mobile-link">
+                        <i class="fas fa-arrow-up"></i> Withdraw
+                    </a>
+                    <a href="/investments" class="mobile-link">
+                        <i class="fas fa-rocket"></i> Invest
+                    </a>
+                    <a href="/transactions/history" class="mobile-link">
+                        <i class="fas fa-list"></i> Transactions
                     </a>
                     <a href="/messages" class="mobile-link">
                         <i class="fas fa-inbox"></i> Inbox
@@ -103,7 +163,28 @@
                             <span class="badge"><%= unreadMessages %></span>
                         <% } %>
                     </a>
+                    <a href="/profile/settings" class="mobile-link">
+                        <i class="fas fa-cog"></i> Settings
+                    </a>
+
+                    <!-- MOVED TOP NAV LINKS INTO MOBILE MENU -->
+                    <hr style="margin: 8px 0; border-color: var(--border-color);">
+                    <a href="/" class="mobile-link">
+                        <i class="fas fa-home"></i> Home
+                    </a>
+                    <a href="/about" class="mobile-link">
+                        <i class="fas fa-info-circle"></i> About
+                    </a>
+                    <a href="/faq" class="mobile-link">
+                        <i class="fas fa-question-circle"></i> FAQ
+                    </a>
+                    <a href="/terms" class="mobile-link">
+                        <i class="fas fa-file-contract"></i> Terms
+                    </a>
+
+                    <!-- ADMIN LINKS -->
                     <% if (user.role === 'admin') { %>
+                        <hr style="margin: 8px 0; border-color: var(--border-color);">
                         <a href="/admin" class="mobile-link">
                             <i class="fas fa-shield-alt"></i> Admin Panel
                         </a>
@@ -111,7 +192,7 @@
                             <i class="fas fa-money-bill-transfer"></i> Withdrawals
                         </a>
                         <a href="/admin/settings" class="mobile-link">
-                            <i class="fas fa-cog"></i> Settings
+                            <i class="fas fa-cog"></i> Admin Settings
                         </a>
                         <a href="/admin/messages" class="mobile-link">
                             <i class="fas fa-comments"></i> Messages
@@ -123,18 +204,23 @@
                             <i class="fas fa-wallet"></i> Crypto Wallets
                         </a>
                     <% } %>
+
                     <form action="/logout" method="POST" style="margin-top: 20px;">
                         <button type="submit" class="mobile-link logout-btn">
                             <i class="fas fa-sign-out-alt"></i> Logout
                         </button>
                     </form>
-                <% } else { %>
-                    <a href="/login" class="mobile-link">Login</a>
-                    <a href="/register" class="btn btn-primary mobile-cta">Get Started</a>
                 <% } %>
             </div>
         </div>
     </div>
+
+    <style>
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: translateY(-50%) scale(1); }
+            50% { opacity: 0.8; transform: translateY(-50%) scale(1.05); }
+        }
+    </style>
 
     <script>
         const mobileMenu = document.getElementById('mobileMenu');
