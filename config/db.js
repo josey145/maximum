@@ -1,14 +1,18 @@
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 
+// If these are undefined, the app will log an error explaining why it failed.
 const pool = mysql.createPool({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || 'Profitbarry_145',
-    database: process.env.DB_NAME || 'crypto_platform',
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    port: parseInt(process.env.DB_PORT) || 26648,
     waitForConnections: true,
     connectionLimit: 10,
-    queueLimit: 0
+    ssl: {
+        rejectUnauthorized: false
+    }
 });
 
 // Test connection

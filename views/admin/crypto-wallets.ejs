@@ -3,16 +3,17 @@
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
 <style>
+/* ===== MOBILE-FIRST BASE STYLES ===== */
 .wallet-card {
     background: var(--card-bg);
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 20px;
+    padding: 16px;
     margin-bottom: 16px;
     display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 20px;
-    align-items: center;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    align-items: start;
 }
 
 .wallet-active { border-left: 4px solid var(--success); }
@@ -22,9 +23,10 @@
     background: var(--card-bg);
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 24px;
+    padding: 16px;
+    margin-bottom: 20px;
     border-left: 4px solid #f59e0b;
+    overflow: hidden;
 }
 
 .crypto-inactive {
@@ -33,112 +35,167 @@
 }
 
 .status-badge {
-    padding: 4px 12px;
+    padding: 4px 10px;
     border-radius: 20px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
+    white-space: nowrap;
+    display: inline-block;
 }
 
 .method-badge {
     background: var(--secondary-bg);
-    padding: 4px 8px;
+    padding: 3px 8px;
     border-radius: 6px;
-    font-size: 12px;
+    font-size: 11px;
+    white-space: nowrap;
 }
 
 .crypto-header {
     display: flex;
-    align-items: center;
-    gap: 16px;
+    align-items: flex-start;
+    gap: 12px;
     margin-bottom: 16px;
     padding-bottom: 16px;
     border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
 }
 
 .crypto-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
     background: linear-gradient(135deg, #f59e0b, #d97706);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 700;
     color: white;
+    flex-shrink: 0;
 }
 
 .crypto-title {
     flex: 1;
+    min-width: 0;
+}
+
+.crypto-title h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    word-break: break-word;
+}
+
+.crypto-title p {
+    margin: 4px 0 0;
+    color: var(--text-secondary);
+    font-size: 12px;
 }
 
 .crypto-actions {
     display: flex;
     gap: 8px;
+    flex-shrink: 0;
+}
+
+/* ===== TABLE STYLES - MOBILE OPTIMIZED ===== */
+.wallet-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -16px;
+    padding: 0 16px;
 }
 
 .wallet-table {
     width: 100%;
+    min-width: 600px;
     border-collapse: collapse;
 }
 
 .wallet-table th {
     text-align: left;
-    padding: 12px;
-    font-size: 11px;
+    padding: 10px 8px;
+    font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     color: var(--text-secondary);
     border-bottom: 1px solid var(--border);
+    white-space: nowrap;
 }
 
 .wallet-table td {
-    padding: 16px 12px;
+    padding: 12px 8px;
     border-bottom: 1px solid var(--border);
+    vertical-align: middle;
 }
 
 .wallet-table tr:last-child td {
     border-bottom: none;
 }
 
+/* ===== ADDRESS TEXT - MOBILE SAFE ===== */
 .address-text {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text-secondary);
     background: var(--secondary-bg);
-    padding: 6px 12px;
+    padding: 6px 10px;
     border-radius: 6px;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.address-text span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.address-text .btn-sm {
+    flex-shrink: 0;
+    padding: 4px 6px;
+    font-size: 11px;
 }
 
 .empty-state {
     text-align: center;
-    padding: 40px;
+    padding: 32px 16px;
     color: var(--text-secondary);
 }
 
 .empty-state i {
-    font-size: 48px;
+    font-size: 40px;
     opacity: 0.3;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 }
 
+/* ===== STATS GRID ===== */
+.stats-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+/* ===== MODAL STYLES - MOBILE FIRST ===== */
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.85);
     backdrop-filter: blur(4px);
     display: none;
-    align-items: center;
+    align-items: flex-end;
     justify-content: center;
     z-index: 1000;
-    padding: 20px;
+    padding: 0;
 }
 
 .modal-overlay.active {
@@ -148,12 +205,19 @@
 .modal-content {
     background: var(--card-bg);
     border: 1px solid var(--border);
-    border-radius: 16px;
+    border-radius: 16px 16px 0 0;
     width: 100%;
-    max-width: 600px;
+    max-width: 100%;
     max-height: 90vh;
     overflow: hidden;
-    animation: modalSlide 0.3s ease;
+    animation: modalSlideUp 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+@keyframes modalSlideUp {
+    from { opacity: 0; transform: translateY(100%); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes modalSlide {
@@ -162,35 +226,39 @@
 }
 
 .modal-header {
-    padding: 20px 24px;
+    padding: 16px 20px;
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-shrink: 0;
 }
 
 .modal-body {
-    padding: 24px;
+    padding: 20px;
     overflow-y: auto;
-    max-height: calc(90vh - 140px);
+    flex: 1;
+    -webkit-overflow-scrolling: touch;
 }
 
 .modal-footer {
-    padding: 16px 24px;
+    padding: 12px 20px;
     border-top: 1px solid var(--border);
     display: flex;
-    gap: 12px;
+    gap: 10px;
     justify-content: flex-end;
+    flex-shrink: 0;
+    flex-wrap: wrap;
 }
 
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 8px;
-    font-size: 14px;
+    margin-bottom: 6px;
+    font-size: 13px;
     font-weight: 500;
     color: var(--text);
 }
@@ -199,13 +267,14 @@
 .form-group select,
 .form-group textarea {
     width: 100%;
-    padding: 12px 16px;
+    padding: 10px 14px;
     background: var(--secondary-bg);
     border: 1px solid var(--border);
     border-radius: 8px;
     color: var(--text);
     font-size: 14px;
     transition: border-color 0.2s;
+    -webkit-appearance: none;
 }
 
 .form-group input:focus,
@@ -217,8 +286,8 @@
 
 .form-row {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
+    grid-template-columns: 1fr;
+    gap: 0;
 }
 
 .checkbox-wrapper {
@@ -226,38 +295,175 @@
     align-items: center;
     gap: 8px;
     cursor: pointer;
+    font-size: 13px;
 }
 
 .checkbox-wrapper input[type="checkbox"] {
     width: 18px;
     height: 18px;
     accent-color: var(--primary);
+    flex-shrink: 0;
 }
 
-.stats-grid-4 {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-bottom: 24px;
+/* ===== BUTTON SIZES FOR MOBILE ===== */
+.btn-sm {
+    padding: 6px 10px;
+    font-size: 12px;
 }
 
-@media (max-width: 1024px) {
+.td-actions {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.td-actions form {
+    display: inline;
+}
+
+.td-actions .btn-sm {
+    padding: 5px 8px;
+}
+
+/* ===== MOBILE HELPER CLASSES ===== */
+.show-mobile { display: inline; }
+.hide-mobile { display: none; }
+
+/* ===== TABLET & DESKTOP BREAKPOINTS ===== */
+@media (min-width: 640px) {
+    .wallet-card {
+        grid-template-columns: 1fr auto;
+        padding: 20px;
+        gap: 20px;
+        align-items: center;
+    }
+
+    .crypto-card {
+        padding: 20px;
+        margin-bottom: 24px;
+    }
+
+    .crypto-icon {
+        width: 48px;
+        height: 48px;
+        font-size: 20px;
+    }
+
+    .crypto-title h3 {
+        font-size: 18px;
+    }
+
+    .crypto-header {
+        align-items: center;
+        gap: 16px;
+    }
+
+    .wallet-table-wrapper {
+        margin: 0;
+        padding: 0;
+    }
+
+    .wallet-table th {
+        padding: 12px;
+        font-size: 11px;
+    }
+
+    .wallet-table td {
+        padding: 16px 12px;
+    }
+
+    .address-text {
+        font-size: 13px;
+        padding: 6px 12px;
+    }
+
+    .modal-overlay {
+        align-items: center;
+        padding: 20px;
+    }
+
+    .modal-content {
+        border-radius: 16px;
+        max-width: 600px;
+        animation: modalSlide 0.3s ease;
+    }
+
+    .modal-header {
+        padding: 20px 24px;
+    }
+
+    .modal-body {
+        padding: 24px;
+        max-height: calc(90vh - 140px);
+    }
+
+    .modal-footer {
+        padding: 16px 24px;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .stats-grid-4 {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .show-mobile { display: none; }
+    .hide-mobile { display: inline; }
+}
+
+@media (max-width: 639px) {
     .stats-grid-4 {
         grid-template-columns: repeat(2, 1fr);
     }
+
+    .crypto-header .crypto-title {
+        width: 100%;
+        order: 2;
+    }
+
+    .crypto-header .crypto-icon {
+        order: 1;
+    }
+
+    .crypto-header .crypto-actions {
+        order: 3;
+        width: 100%;
+        margin-top: 8px;
+    }
+
+    .crypto-header .crypto-actions .btn {
+        flex: 1;
+        justify-content: center;
+    }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 380px) {
     .stats-grid-4 {
         grid-template-columns: 1fr;
     }
-    
-    .wallet-card {
-        grid-template-columns: 1fr;
+
+    .td-actions {
+        flex-direction: column;
+        gap: 4px;
     }
-    
-    .crypto-header {
-        flex-wrap: wrap;
+
+    .td-actions .btn-sm {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .modal-footer {
+        flex-direction: column;
+    }
+
+    .modal-footer .btn {
+        width: 100%;
+        justify-content: center;
     }
 }
 </style>
@@ -317,8 +523,6 @@
         </div>
     </div>
 
-    
-
     <!-- Crypto Wallets List -->
     <% Object.entries(walletsByCrypto).forEach(([symbol, wallets]) => { %>
         <% const hasActive = wallets.some(w => w.is_active); %>
@@ -328,8 +532,8 @@
                     <%= symbol.substring(0, 2) %>
                 </div>
                 <div class="crypto-title">
-                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 4px;">
-                        <h3 style="margin: 0; font-size: 18px; font-weight: 600;"><%= symbol %></h3>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap;">
+                        <h3><%= symbol %></h3>
                         <span class="method-badge"><%= wallets.length %> address<%= wallets.length > 1 ? 'es' : '' %></span>
                         <% const stat = depositStats.find(s => s.crypto_type === symbol); %>
                         <% if (stat) { %>
@@ -338,75 +542,84 @@
                             </span>
                         <% } %>
                     </div>
-                    <p style="margin: 0; color: var(--text-secondary); font-size: 13px;">
+                    <p>
                         <%= wallets.filter(w => w.is_active).length %> active
                         <% if (stat) { %>• $<%= parseFloat(stat.total_received).toFixed(2) %> received<% } %>
                     </p>
                 </div>
                 <div class="crypto-actions">
                     <button class="btn btn-primary btn-sm" onclick="openAddModal('<%= symbol %>')">
-                        <i class="fas fa-plus"></i> Add <%= symbol %> Address
+                        <i class="fas fa-plus"></i> <span class="hide-mobile">Add <%= symbol %></span><span class="show-mobile">Add</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Wallets Table -->
-            <table class="wallet-table">
-                <thead>
-                    <tr>
-                        <th>Address</th>
-                        <th>Network</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% wallets.forEach(wallet => { %>
+            <!-- Wallets Table with Horizontal Scroll -->
+            <div class="wallet-table-wrapper">
+                <table class="wallet-table">
+                    <thead>
                         <tr>
-                            <td>
-                                <div class="address-text">
-                                    <%= wallet.address.substring(0, 20) %>...<%= wallet.address.slice(-8) %>
-                                    <button onclick="copyToClipboard('<%= wallet.address %>')" class="btn btn-outline btn-sm" style="padding: 4px 8px;" title="Copy Address">
-                                        <i class="fas fa-copy"></i>
-                                    </button>
-                                </div>
-                                <% if (wallet.qr_code) { %>
-                                    <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
-                                        <i class="fas fa-qrcode"></i> QR Code available
-                                    </div>
-                                <% } %>
-                            </td>
-                            <td>
-                                <span class="method-badge"><%= wallet.network || 'Mainnet' %></span>
-                            </td>
-                            <td>
-                                <% if (wallet.is_active) { %>
-                                    <span class="status-badge" style="background: rgba(16, 185, 129, 0.2); color: #10b981;">Active</span>
-                                <% } else { %>
-                                    <span class="status-badge" style="background: rgba(239, 68, 68, 0.2); color: #ef4444;">Inactive</span>
-                                <% } %>
-                            </td>
-                            <td>
-                                <div style="display: flex; gap: 6px;">
-                                    <button onclick="editWallet(<%= JSON.stringify(wallet) %>)" class="btn btn-outline btn-sm" title="Edit">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <form method="POST" action="/admin/crypto-wallets/<%= wallet.id %>/toggle" style="display: inline;">
-                                        <button type="submit" class="btn <%= wallet.is_active ? 'btn-danger' : 'btn-success' %> btn-sm" title="<%= wallet.is_active ? 'Deactivate' : 'Activate' %>">
-                                            <i class="fas <%= wallet.is_active ? 'fa-pause' : 'fa-play' %>"></i>
-                                        </button>
-                                    </form>
-                                    <form method="POST" action="/admin/crypto-wallets/<%= wallet.id %>/delete" style="display: inline;" onsubmit="return confirm('Delete this wallet address?');">
-                                        <button type="submit" class="btn btn-danger btn-sm" title="Delete">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
+                            <th>Address</th>
+                            <th>Network</th>
+                            <th>Status</th>
+                            <th>Actions</th>
                         </tr>
-                    <% }); %>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        <% wallets.forEach(wallet => { %>
+                            <tr>
+                                <td>
+                                    <div class="address-text">
+                                        <span><%= wallet.address.substring(0, 12) %>...<%= wallet.address.slice(-6) %></span>
+                                        <button onclick="copyToClipboard('<%= wallet.address %>')" class="btn btn-outline btn-sm" title="Copy Address">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                    <% if (wallet.qr_code) { %>
+                                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
+                                            <i class="fas fa-qrcode"></i> QR Code available
+                                        </div>
+                                    <% } %>
+                                </td>
+                                <td>
+                                    <span class="method-badge"><%= wallet.network || 'Mainnet' %></span>
+                                </td>
+                                <td>
+                                    <% if (wallet.is_active) { %>
+                                        <span class="status-badge" style="background: rgba(16, 185, 129, 0.2); color: #10b981;">Active</span>
+                                    <% } else { %>
+                                        <span class="status-badge" style="background: rgba(239, 68, 68, 0.2); color: #ef4444;">Inactive</span>
+                                    <% } %>
+                                </td>
+                                <td>
+                                    <div class="td-actions">
+                                        <button class="btn btn-outline btn-sm edit-wallet-btn" 
+                                            data-wallet-id="<%= wallet.id %>"
+                                            data-wallet-symbol="<%= wallet.symbol %>"
+                                            data-wallet-address="<%= wallet.address %>"
+                                            data-wallet-network="<%= wallet.network || 'Mainnet' %>"
+                                            data-wallet-qr="<%= wallet.qr_code || '' %>"
+                                            data-wallet-active="<%= wallet.is_active ? '1' : '0' %>"
+                                            title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <form method="POST" action="/admin/crypto-wallets/<%= wallet.id %>/toggle" style="display: inline;">
+                                            <button type="submit" class="btn <%= wallet.is_active ? 'btn-danger' : 'btn-success' %> btn-sm" title="<%= wallet.is_active ? 'Deactivate' : 'Activate' %>">
+                                                <i class="fas <%= wallet.is_active ? 'fa-pause' : 'fa-play' %>"></i>
+                                            </button>
+                                        </form>
+                                        <form method="POST" action="/admin/crypto-wallets/<%= wallet.id %>/delete" style="display: inline;" onsubmit="return confirm('Delete this wallet address?');">
+                                            <button type="submit" class="btn btn-danger btn-sm" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
         </div>
     <% }); %>
 
@@ -520,13 +733,12 @@ function closeAddModal() {
 }
 
 function editWallet(wallet) {
-    document.getElementById('editForm').action = `/admin/crypto-wallets/${wallet.id}/update`;
+    document.getElementById('editForm').action = '/admin/crypto-wallets/' + wallet.id + '/update';
     document.getElementById('editSymbol').value = wallet.symbol;
     document.getElementById('editAddress').value = wallet.address;
     document.getElementById('editNetwork').value = wallet.network || 'Mainnet';
     document.getElementById('editQrCode').value = wallet.qr_code || '';
     document.getElementById('editIsActive').checked = wallet.is_active;
-    
     document.getElementById('editModal').classList.add('active');
 }
 
@@ -535,18 +747,34 @@ function closeEditModal() {
 }
 
 function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => {
-        const toast = document.createElement('div');
+    navigator.clipboard.writeText(text).then(function() {
+        var toast = document.createElement('div');
         toast.className = 'alert alert-success';
         toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 9999; animation: slideIn 0.3s ease;';
         toast.innerHTML = '<i class="fas fa-check-circle"></i> Address copied to clipboard';
         document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
+        setTimeout(function() { toast.remove(); }, 3000);
     });
 }
 
+// Event delegation for edit buttons - avoids JSON.stringify in onclick
+document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.edit-wallet-btn');
+    if (!btn) return;
+
+    var wallet = {
+        id: btn.getAttribute('data-wallet-id'),
+        symbol: btn.getAttribute('data-wallet-symbol'),
+        address: btn.getAttribute('data-wallet-address'),
+        network: btn.getAttribute('data-wallet-network'),
+        qr_code: btn.getAttribute('data-wallet-qr'),
+        is_active: btn.getAttribute('data-wallet-active') === '1'
+    };
+    editWallet(wallet);
+});
+
 // Close modals on outside click
-document.querySelectorAll('.modal-overlay').forEach(modal => {
+document.querySelectorAll('.modal-overlay').forEach(function(modal) {
     modal.addEventListener('click', function(e) {
         if (e.target === this) {
             this.classList.remove('active');
@@ -555,14 +783,9 @@ document.querySelectorAll('.modal-overlay').forEach(modal => {
 });
 
 // Add slideIn animation
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-`;
-document.head.appendChild(style);
+var animStyle = document.createElement('style');
+animStyle.textContent = '    @keyframes slideIn {        from { transform: translateX(100%); opacity: 0; }        to { transform: translateX(0); opacity: 1; }    }';
+document.head.appendChild(animStyle);
 </script>
 
 <%- include('../partials/footer') %>
