@@ -2,13 +2,9 @@
 <%- include('../partials/navbar') %>
 <link rel="stylesheet" href="../../css/withdraw.css">
 
-
-// ── Currency helpers ──────────────────────────────────────────────────────────
 <%
 // ── Currency helpers ──────────────────────────────────────────────────────────
 const dc = (typeof currency !== 'undefined' ? currency : 'USD');
-// or if you meant to use balanceCurrency:
-// const dc = (typeof balanceCurrency !== 'undefined' ? balanceCurrency : 'USD');
 
 const SYMBOLS = {
     USD:'$', EUR:'€', GBP:'£', JPY:'¥', CHF:'Fr', CAD:'C$', AUD:'A$',
@@ -22,7 +18,6 @@ const SYMBOLS = {
 };
 const sym = SYMBOLS[dc] || (dc + ' ');
 %>
-
 
 <div class="withdraw-container">
     <div class="page-header">
@@ -56,16 +51,16 @@ const sym = SYMBOLS[dc] || (dc + ' ');
 
             <!-- Amount -->
             <div class="form-group">
-                <label><i class="fas fa-coins"></i> Amount (USD)</label>
+                <label><i class="fas fa-coins"></i> Amount (<%= dc %>)</label>
                 <div class="amount-wrapper">
-                    <span class="amount-prefix">$</span>
+                    <span class="amount-prefix"><%= sym %></span>
                     <input type="number" name="amount" id="withdrawAmount"
                            placeholder="0.00" step="0.01" min="1"
-                           max="<%= parseFloat(balance || 0).toFixed(2) %>"
+                           max="<%= parseFloat(displayBalance || 0).toFixed(2) %>"
                            required>
                 </div>
                 <div class="amount-hint">
-                    <span>Enter amount in USD</span>
+                    <span>Enter amount in <%= dc %></span>
                     <% if (dc !== 'USD') { %>
                         <span class="converted" id="convertedDisplay">≈ loading...</span>
                     <% } %>
@@ -161,19 +156,19 @@ const sym = SYMBOLS[dc] || (dc + ' ');
 
 <script>
 const USER_CURRENCY   = '<%= dc %>';
-const USER_BALANCE    = <%= parseFloat(balance || 0) %>;
+const USER_BALANCE    = <%= parseFloat(displayBalance || 0) %>;  // Now in user's currency
 const CURRENCY_SYMBOL = '<%= sym %>';
 
-// ── Live rate for preview (USD → user's currency) ─────────────────────────
-let usdToUserRate = null;
+// ── Live rate for preview (user's currency → USD) ─────────────────────────
+let userToUsdRate = null;
 
 (async function () {
-    if (USER_CURRENCY === 'USD') { usdToUserRate = 1; return; }
+    if (USER_CURRENCY === 'USD') { userToUsdRate = 1; return; }
     try {
-        const res  = await fetch('/api/rate?from=USD&to=' + USER_CURRENCY);
+        const res  = await fetch('/api/rate?from=' + USER_CURRENCY + '&to=USD');
         const data = await res.json();
         if (data && data.rate) {
-            usdToUserRate = parseFloat(data.rate);
+            userToUsdRate = parseFloat(data.rate);
             updateConvertedDisplay();
         }
     } catch (e) {
@@ -187,15 +182,15 @@ const convertedDisplay  = document.getElementById('convertedDisplay');
 
 function updateConvertedDisplay() {
     if (!convertedDisplay) return;
-    const usd = parseFloat(withdrawAmountEl?.value) || 0;
-    if (!usdToUserRate || usd <= 0) {
+    const userAmount = parseFloat(withdrawAmountEl?.value) || 0;
+    if (!userToUsdRate || userAmount <= 0) {
         convertedDisplay.textContent = '≈ —';
         return;
     }
-    const converted = usd * usdToUserRate;
-    convertedDisplay.textContent = '≈ ' + CURRENCY_SYMBOL
-        + converted.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-        + ' ' + USER_CURRENCY + ' (deducted from balance)';
+    const usdAmount = userAmount * userToUsdRate;
+    convertedDisplay.textContent = '≈ $'
+        + usdAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+        + ' USD (stored in USD)';
 }
 
 withdrawAmountEl?.addEventListener('input', updateConvertedDisplay);
@@ -238,26 +233,23 @@ document.getElementById('withdrawForm').addEventListener('submit', function (e) 
         return;
     }
 
-    const usd = parseFloat(withdrawAmountEl.value);
-    if (!usd || usd <= 0) {
+    const userAmount = parseFloat(withdrawAmountEl.value);
+    if (!userAmount || userAmount <= 0) {
         e.preventDefault();
         alert('Please enter a valid amount.');
         return;
     }
 
-    // Warn if user_currency != USD and we have rate info
-    if (usdToUserRate && USER_CURRENCY !== 'USD') {
-        const deduct = usd * usdToUserRate;
-        if (deduct > USER_BALANCE) {
-            e.preventDefault();
-            alert('Insufficient balance. Your balance is '
-                + CURRENCY_SYMBOL + USER_BALANCE.toLocaleString('en-US', { minimumFractionDigits: 2 })
-                + ' ' + USER_CURRENCY
-                + ' but this withdrawal requires '
-                + CURRENCY_SYMBOL + deduct.toLocaleString('en-US', { minimumFractionDigits: 2 })
-                + ' ' + USER_CURRENCY + '.'
-            );
-        }
+    // Check against user's currency balance
+    if (userAmount > USER_BALANCE) {
+        e.preventDefault();
+        alert('Insufficient balance. Your balance is '
+            + CURRENCY_SYMBOL + USER_BALANCE.toLocaleString('en-US', { minimumFractionDigits: 2 })
+            + ' ' + USER_CURRENCY
+            + ' but you requested '
+            + CURRENCY_SYMBOL + userAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })
+            + ' ' + USER_CURRENCY + '.'
+        );
     }
 });
 </script>

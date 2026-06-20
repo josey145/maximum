@@ -4,7 +4,6 @@ const { ensureAuthenticated } = require('../middleware/authMiddleware');
 const db = require('../config/db');
 const { formatCurrency, resolveRate } = require('../utils/currency');
 
-
 // ==================== GET /transactions/withdraw/verify ====================
 
 router.get('/withdraw/verify', ensureAuthenticated, async (req, res) => {
@@ -20,11 +19,15 @@ router.get('/withdraw/verify', ensureAuthenticated, async (req, res) => {
         const hasValidCode    = !!(user.withdrawal_code && codeExpires && codeExpires > now);
         const displayCurrency = user.currency || 'USD';
 
+        // Convert balance to display currency for showing user
+        const displayBalance = await convertAmount(user.balance, 'USD', displayCurrency);
+
         res.render('dashboard/withdraw_verify', {
             title:           'Verify Withdrawal - Maximum',
             user:            req.session.user,
-            balance:         user.balance,
-            balanceFormatted: formatCurrency(parseFloat(user.balance || 0), displayCurrency),
+            balance:         user.balance,                    // Raw USD balance (for processing)
+            displayBalance:  displayBalance,                  // Converted for display
+            balanceFormatted: formatCurrency(displayBalance, displayCurrency),
             currency:        displayCurrency,
             hasValidCode,
             codeExpired:     !!(user.withdrawal_code_expires && !hasValidCode),
@@ -99,9 +102,11 @@ router.get('/withdraw/form', ensureAuthenticated, async (req, res) => {
             [req.session.user.id]
         );
 
-        const displayCurrency = users[0].currency          || 'USD';
-        const balCurrency     = users[0].balance_currency  || displayCurrency;
-        const rawBalance      = parseFloat(users[0].balance || 0);
+        const displayCurrency = users[0].currency || 'USD';
+        const rawBalance      = parseFloat(users[0].balance || 0); // Always USD in DB
+
+        // Convert USD balance to display currency for user
+        const displayBalance = await convertAmount(rawBalance, 'USD', displayCurrency);
 
         const [cryptoOptions] = await db.execute(
             'SELECT DISTINCT symbol, network FROM crypto_payment_addresses WHERE is_active = TRUE ORDER BY symbol ASC'
@@ -110,10 +115,10 @@ router.get('/withdraw/form', ensureAuthenticated, async (req, res) => {
         res.render('dashboard/withdraw', {
             title:            'Withdraw Funds - Maximum',
             user:             req.session.user,
-            balance:          rawBalance,
-            balanceFormatted: formatCurrency(rawBalance, balCurrency),
-            currency:         displayCurrency,
-            balanceCurrency:  balCurrency,
+            balance:          rawBalance,                           // USD (for processing)
+            displayBalance:   displayBalance,                       // Converted (for display)
+            balanceFormatted: formatCurrency(displayBalance, displayCurrency),
+            currency:         displayCurrency,                      // User's chosen currency
             cryptoOptions:    cryptoOptions || [],
             withdrawalCode:   req.session.withdrawalCode,
             messages: {
@@ -168,45 +173,39 @@ router.post('/withdraw/submit', ensureAuthenticated, async (req, res) => {
 
         await conn.beginTransaction();
 
-        // ── Fetch user balance + currencies ──────────────────────────────
+        // ── Fetch user balance (always USD in database) ─────────────────
         const [users] = await conn.execute(
             'SELECT balance, currency, balance_currency, username, email FROM users WHERE id = ? FOR UPDATE',
             [userId]
         );
 
         const user           = users[0];
-        const balCurrency    = user.balance_currency || user.currency || 'USD';
-        const userBalance    = parseFloat(user.balance);
+        const displayCurrency = user.currency || 'USD';
+        const userBalance    = parseFloat(user.balance); // Always USD
 
-        // ── The form always submits USD amounts (plan limits / display in USD)
-        //    Convert the USD withdraw amount → user's balance currency for deduction.
-        let deductAmount = withdrawInput;           // amount to deduct from DB (in balCurrency)
-        let usdAmount    = withdrawInput;           // amount stored in transactions table (always USD)
+        // ── Convert user's input FROM display currency TO USD ──────────────
+        // User enters amount in their chosen currency (e.g., 5650 PHP)
+        // We convert to USD for database storage (e.g., 100 USD)
+        const usdAmount = await convertAmount(withdrawInput, displayCurrency, 'USD');
 
-        if (balCurrency !== 'USD') {
-            const rate = await resolveRate('USD', balCurrency);
-            if (!rate) {
-                await conn.rollback();
-                req.flash('error', `Exchange rate from USD to ${balCurrency} not available. Please contact support.`);
-                return res.redirect('/transactions/withdraw/form');
-            }
-            deductAmount = withdrawInput * rate;
-        }
+        console.log(`💱 Withdrawal: ${withdrawInput} ${displayCurrency} = ${usdAmount} USD`);
 
-        // ── Balance check (compare in the same currency as stored) ───────
-        if (userBalance < deductAmount) {
+        // ── Balance check (compare in USD) ─────────────────────────────────
+        if (userBalance < usdAmount) {
             await conn.rollback();
-            req.flash('error', `Insufficient balance. Available: ${formatCurrency(userBalance, balCurrency)}`);
+            const availableDisplay = await convertAmount(userBalance, 'USD', displayCurrency);
+            req.flash('error', `Insufficient balance. Available: ${formatCurrency(availableDisplay, displayCurrency)}`);
             return res.redirect('/transactions/withdraw/form');
         }
 
-        // ── Deduct balance ────────────────────────────────────────────────
+        // ── Deduct balance in USD ─────────────────────────────────────────
         await conn.execute(
             'UPDATE users SET balance = balance - ?, updated_at = NOW() WHERE id = ?',
-            [deductAmount, userId]
+            [usdAmount, userId]
         );
 
-        // ── Create transaction record (amount stored in USD, currency field = balCurrency) ─
+        // ── Create transaction record ────────────────────────────────────
+        // Store: amount in USD, currency field shows user's display currency
         const externalId = payment_method === 'crypto'
             ? `${crypto_type}:${wallet_address.trim()}`
             : wallet_address.trim();
@@ -215,7 +214,7 @@ router.post('/withdraw/submit', ensureAuthenticated, async (req, res) => {
             INSERT INTO transactions
             (user_id, type, amount, currency, status, payment_method, external_id, created_at)
             VALUES (?, 'withdrawal', ?, ?, 'pending', ?, ?, NOW())
-        `, [userId, usdAmount, balCurrency, payment_method, externalId]);
+        `, [userId, usdAmount, displayCurrency, payment_method, externalId]);
 
         await conn.commit();
 
@@ -224,7 +223,7 @@ router.post('/withdraw/submit', ensureAuthenticated, async (req, res) => {
         delete req.session.withdrawalCode;
 
         req.flash('success',
-            `Withdrawal request of ${formatCurrency(deductAmount, balCurrency)} submitted successfully. Pending admin approval.`
+            `Withdrawal request of ${formatCurrency(withdrawInput, displayCurrency)} submitted successfully. Pending admin approval.`
         );
         res.redirect('/dashboard');
 
@@ -257,6 +256,11 @@ router.get('/history', ensureAuthenticated, async (req, res) => {
 
         const displayCurrency = users[0]?.currency || 'USD';
 
+        // Convert transaction amounts to display currency
+        for (const t of transactions) {
+            t.displayAmount = await convertAmount(t.amount, 'USD', displayCurrency);
+        }
+
         res.render('dashboard/history', {
             title:           'Transaction History - Maximum',
             user:            req.session.user,
@@ -271,6 +275,17 @@ router.get('/history', ensureAuthenticated, async (req, res) => {
         res.redirect('/dashboard');
     }
 });
+
+
+// ==================== HELPER: Convert Amount ====================
+
+async function convertAmount(amount, from, to) {
+    if (!amount || isNaN(amount)) return 0;
+    if (from === to) return parseFloat(amount);
+    
+    const rate = await resolveRate(from, to);
+    return parseFloat(amount) * rate;
+}
 
 
 module.exports = router;

@@ -605,45 +605,48 @@
         </div>
     </div>
 
+  
     <!-- Active Investments Section -->
-    <% if (activeInvestments && activeInvestments.length > 0) { %>
-    <div class="card" style="background: #111118; border: 1px solid #1e1e2e; border-radius: 16px; padding: 20px; margin-bottom: 24px;">
-        <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #f4f4f5;">
-            <i class="fas fa-briefcase" style="color: #8b5cf6; margin-right: 8px;"></i>
-            Active Positions (<%= activeInvestments.length %>)
-        </h3>
-        
-        <% activeInvestments.forEach(trade => { %>
-        <div class="investment-card">
-            <div class="investment-header">
-                <div>
-                    <span class="investment-pair"><%= trade.pair_symbol || trade.symbol %></span>
-                    <span style="font-size: 12px; color: #a1a1aa; margin-left: 8px;"><%= trade.pair_name %></span>
-                </div>
-                <span class="investment-direction direction-<%= trade.direction %>">
-                    <%= trade.direction.toUpperCase() %>
+<% if (activeInvestments && activeInvestments.length > 0) { %>
+<div class="card" style="background: #111118; border: 1px solid #1e1e2e; border-radius: 16px; padding: 20px; margin-bottom: 24px;">
+    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #f4f4f5;">
+        <i class="fas fa-briefcase" style="color: #8b5cf6; margin-right: 8px;"></i>
+        Active Positions (<%= activeInvestments.length %>)
+    </h3>
+    
+    <% activeInvestments.forEach(trade => { %>
+    <div class="investment-card">
+        <div class="investment-header">
+            <div>
+                <span class="investment-pair"><%= trade.pair_symbol || trade.symbol %></span>
+                <span style="font-size: 12px; color: #a1a1aa; margin-left: 8px;"><%= trade.pair_name %></span>
+            </div>
+            <span class="investment-direction direction-<%= trade.direction %>">
+                <%= trade.direction.toUpperCase() %>
+            </span>
+        </div>
+        <div class="investment-details">
+            <div class="investment-detail">
+                <span class="investment-label">Entry Price</span>
+                <span class="investment-value">
+                    <%= formatCurrency(trade.converted_entry_price || trade.entry_price, displayCurrency) %>
                 </span>
             </div>
-            <div class="investment-details">
-                <div class="investment-detail">
-                    <span class="investment-label">Entry Price</span>
-                    <span class="investment-value">$<%= trade.entry_price %></span>
-                </div>
-                <div class="investment-detail">
-                    <span class="investment-label">Lot Size</span>
-                    <span class="investment-value"><%= trade.lot_size %></span>
-                </div>
-                <div class="investment-detail">
-                    <span class="investment-label">P&L</span>
-                    <span class="investment-value <%= parseFloat(trade.profit_loss) >= 0 ? 'pnl-positive' : 'pnl-negative' %>">
-                        $<%= parseFloat(trade.profit_loss || 0).toFixed(2) %>
-                    </span>
-                </div>
+            <div class="investment-detail">
+                <span class="investment-label">Lot Size</span>
+                <span class="investment-value"><%= trade.lot_size %></span>
+            </div>
+            <div class="investment-detail">
+                <span class="investment-label">P&L</span>
+                <span class="investment-value <%= parseFloat(trade.converted_profit_loss || trade.profit_loss) >= 0 ? 'pnl-positive' : 'pnl-negative' %>">
+                    <%= formatCurrency(trade.converted_profit_loss || trade.profit_loss, displayCurrency) %>
+                </span>
             </div>
         </div>
-        <% }) %>
     </div>
-    <% } %>
+    <% }) %>
+</div>
+<% } %>
 
     <!-- Menu Grid -->
     <div class="menu-grid">

@@ -6,13 +6,36 @@ const { formatCurrency } = require('../utils/currency');
 
 // Hardcoded rates fallback
 const TEST_RATES = {
-    'USD': { 'EUR': 0.92, 'GBP': 0.79, 'NGN': 1500, 'USD': 1 },
-    'EUR': { 'USD': 1.09, 'EUR': 1 },
-    'GBP': { 'USD': 1.27, 'GBP': 1 },
-    'NGN': { 'USD': 0.00067, 'NGN': 1 }
+    'USD': { 'EUR': 0.92, 'GBP': 0.79, 'NGN': 1500, 'USD': 1, 'INR': 83.5, 'PKR': 278, 'BDT': 109.5, 'PHP': 56.5, 'AED': 3.67, 'SAR': 3.75, 'ZAR': 18.5, 'KES': 129, 'GHS': 12.5, 'XOF': 605, 'XAF': 605, 'EGP': 30.9, 'MAD': 10.1 },
+    'EUR': { 'USD': 1.09, 'EUR': 1, 'INR': 90.5, 'NGN': 1635 },
+    'GBP': { 'USD': 1.27, 'GBP': 1, 'INR': 105.2 },
+    'NGN': { 'USD': 0.00067, 'NGN': 1, 'INR': 0.056 },
+    'INR': { 'USD': 0.012, 'INR': 1, 'NGN': 17.9 },
+    'PKR': { 'USD': 0.0036, 'PKR': 1 },
+    'BDT': { 'USD': 0.0091, 'BDT': 1 },
+    'PHP': { 'USD': 0.018, 'PHP': 1 },
+    'AED': { 'USD': 0.27, 'AED': 1 },
+    'SAR': { 'USD': 0.27, 'SAR': 1 },
+    'ZAR': { 'USD': 0.054, 'ZAR': 1 },
+    'KES': { 'USD': 0.0078, 'KES': 1 },
+    'GHS': { 'USD': 0.08, 'GHS': 1 },
+    'XOF': { 'USD': 0.00165, 'XOF': 1 },
+    'XAF': { 'USD': 0.00165, 'XAF': 1 },
+    'EGP': { 'USD': 0.032, 'EGP': 1 },
+    'MAD': { 'USD': 0.099, 'MAD': 1 }
 };
 
+// Helper: Convert any amount from one currency to another
+async function convertAmount(amount, fromCurrency, toCurrency) {
+    if (!amount || isNaN(amount)) return 0;
+    if (fromCurrency === toCurrency) return parseFloat(amount);
+    
+    const rate = await getRate(fromCurrency, toCurrency);
+    return parseFloat(amount) * rate;
+}
+
 router.get('/', ensureAuthenticated, async (req, res) => {
+    
     try {
         const userId = req.session.user?.id;
         
@@ -21,7 +44,7 @@ router.get('/', ensureAuthenticated, async (req, res) => {
             return res.redirect('/login');
         }
 
-        // Get FULL user data including kyc_status, account_verified, etc.
+        // Get FULL user data
         const [users] = await db.execute(`
             SELECT id, username, email, role, kyc_status, account_verified, 
                    currency, balance, balance_currency, country, phone, 
@@ -35,22 +58,41 @@ router.get('/', ensureAuthenticated, async (req, res) => {
             return res.redirect('/login');
         }
         
-        const user = users[0];
+       const user = users[0];
         const displayCurrency = user.currency || 'USD';
-        const baseCurrency = user.balance_currency || user.currency || 'USD';
-        
-        // Get user's holdings/investments with current prices
-        const [holdings] = await db.execute(`
-            SELECT h.*, 
-                   COALESCE(h.current_price, 0) as price,
-                   (h.amount * COALESCE(h.current_price, 0)) as value
-            FROM holdings h 
-            WHERE h.user_id = ?
-        `, [userId]);
-        
-        // Calculate portfolio value
-        const totalValueBase = holdings.reduce((sum, h) => sum + parseFloat(h.value || 0), 0);
-        
+        const baseCurrency = 'USD';
+
+        // DEBUG - Now user is defined!
+        console.log('🔍 User currency:', user.currency);
+        console.log('🔍 Balance currency:', user.balance_currency);
+        console.log('🔍 Base currency:', baseCurrency);
+        console.log('🔍 Display currency:', displayCurrency);
+        console.log('🔍 Are they same?', baseCurrency === displayCurrency);
+
+        // Get exchange rate ONCE
+        const exchangeRate = await getRate(baseCurrency, displayCurrency);
+        console.log(`💱 Exchange rate: 1 ${baseCurrency} = ${exchangeRate} ${displayCurrency}`);
+
+       
+                
+                    // Get user's holdings/investments with current prices
+            const [holdings] = await db.execute(`
+                SELECT h.*, 
+                    COALESCE(h.current_price, 0) as price,
+                    COALESCE(h.amount, 0) * COALESCE(h.current_price, 0) as value
+                FROM holdings h 
+                WHERE h.user_id = ?
+            `, [userId]);
+            
+            // Calculate portfolio value - CONVERT each holding to display currency
+            let totalValueBase = 0;
+            for (const h of holdings) {
+                const rawValue = parseFloat(h.value) || 0;
+                const convertedValue = await convertAmount(rawValue, baseCurrency, displayCurrency);
+                h.converted_value = convertedValue;
+                totalValueBase += convertedValue;
+            }
+
         // Get REAL trading stats from forex_trades
         const [tradeStats] = await db.execute(`
             SELECT 
@@ -66,7 +108,11 @@ router.get('/', ensureAuthenticated, async (req, res) => {
         
         const stats = tradeStats[0] || {};
         
-        // Get recent closed trades for activity feed
+        // Convert trade stats to display currency
+        const convertedTotalPnL = await convertAmount(stats.total_pnl, baseCurrency, displayCurrency);
+        const convertedUnrealizedPnL = await convertAmount(stats.unrealized_pnl, baseCurrency, displayCurrency);
+
+        // Get recent closed trades
         const [recentTrades] = await db.execute(`
             SELECT t.*, p.name as pair_name, p.symbol
             FROM forex_trades t
@@ -76,7 +122,12 @@ router.get('/', ensureAuthenticated, async (req, res) => {
             LIMIT 5
         `, [userId]);
         
-        // Get active/open trades (investments)
+        // Convert trade P&L for display
+        for (const trade of recentTrades) {
+            trade.converted_profit_loss = await convertAmount(trade.profit_loss, baseCurrency, displayCurrency);
+        }
+        
+        // Get active/open trades
         const [activeInvestments] = await db.execute(`
             SELECT t.*, p.name as pair_name, p.symbol
             FROM forex_trades t
@@ -85,32 +136,67 @@ router.get('/', ensureAuthenticated, async (req, res) => {
             ORDER BY t.opened_at DESC
         `, [userId]);
         
-        // Calculate active investment value
-        const activeInvestmentValue = activeInvestments.reduce((sum, trade) => {
-            return sum + parseFloat(trade.margin_required || 0) + parseFloat(trade.profit_loss || 0);
-        }, 0);
-        
+        // Convert active investment values
+        let activeInvestmentValue = 0;
+        for (const trade of activeInvestments) {
+            const margin = await convertAmount(trade.margin_required || 0, baseCurrency, displayCurrency);
+            const pl = await convertAmount(trade.profit_loss || 0, baseCurrency, displayCurrency);
+            
+            trade.converted_margin = margin;
+            trade.converted_profit_loss = pl;
+            trade.converted_entry_price = await convertAmount(trade.entry_price || 0, baseCurrency, displayCurrency);
+            
+            activeInvestmentValue += (margin + pl);
+        }
+
         // ============================================
-        // GET TOTAL DEPOSITS
+        // GET TOTAL DEPOSITS - CONVERTED
         // ============================================
-        const [[depositStats]] = await db.execute(`
-            SELECT 
-                COUNT(*) as total_deposits,
-                COALESCE(SUM(CASE WHEN status IN ('completed', 'approved') THEN amount ELSE 0 END), 0) as total_deposited,
-                COALESCE(SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END), 0) as pending_deposits
+        const [deposits] = await db.execute(`
+            SELECT amount, currency as txn_currency, status
             FROM transactions 
             WHERE user_id = ? AND type = 'deposit'
         `, [userId]);
 
-        // Get total withdrawals
-        const [[withdrawalStats]] = await db.execute(`
-            SELECT 
-                COUNT(*) as total_withdrawals,
-                COALESCE(SUM(CASE WHEN status = 'completed' OR status = 'approved' THEN amount ELSE 0 END), 0) as total_withdrawn
+        let totalDeposited = 0;
+        let pendingDeposits = 0;
+        let depositCount = 0;
+        
+        for (const d of deposits) {
+            const txnCurrency = d.txn_currency || baseCurrency;
+            const convertedAmount = await convertAmount(d.amount, txnCurrency, displayCurrency);
+            
+            if (d.status === 'completed' || d.status === 'approved') {
+                totalDeposited += convertedAmount;
+            } else if (d.status === 'pending') {
+                pendingDeposits += convertedAmount;
+            }
+            depositCount++;
+        }
+
+        // Get total withdrawals - CONVERTED
+        const [withdrawals] = await db.execute(`
+            SELECT amount, currency as txn_currency, status
             FROM transactions 
             WHERE user_id = ? AND type = 'withdrawal'
         `, [userId]);
+
+        let totalWithdrawn = 0;
+        let withdrawalCount = 0;
         
+        for (const w of withdrawals) {
+            const txnCurrency = w.txn_currency || baseCurrency;
+            const convertedAmount = await convertAmount(w.amount, txnCurrency, displayCurrency);
+            
+            if (w.status === 'completed' || w.status === 'approved') {
+                totalWithdrawn += convertedAmount;
+            }
+            withdrawalCount++;
+        }
+
+        // Convert balance
+        const displayBalance = await convertAmount(user.balance, baseCurrency, displayCurrency);
+
         // ============================================
         // GET WARNINGS FROM DATABASE
         // ============================================
@@ -127,7 +213,7 @@ router.get('/', ensureAuthenticated, async (req, res) => {
             WHERE user_id = ? AND status = 'unread' AND is_from_admin = TRUE
         `, [userId]);
 
-        // Get latest unread message to show as dashboard alert
+        // Get latest unread message
         const [latestMessages] = await db.execute(`
             SELECT m.*, a.username as admin_username
             FROM user_messages m
@@ -137,40 +223,9 @@ router.get('/', ensureAuthenticated, async (req, res) => {
             LIMIT 1
         `, [userId]);
 
-        // ============================================
-        // CURRENCY CONVERSION
-        // ============================================
-        let displayBalance = parseFloat(user.balance);
-        let displayTotalValue = totalValueBase;
-        let displayActiveInvestment = activeInvestmentValue;
-        let displayTotalPnL = parseFloat(stats.total_pnl || 0);
-        let displayUnrealizedPnL = parseFloat(stats.unrealized_pnl || 0);
-        let displayTotalDeposited = parseFloat(depositStats.total_deposited || 0);
-        let displayPendingDeposits = parseFloat(depositStats.pending_deposits || 0);
-        let displayTotalWithdrawn = parseFloat(withdrawalStats.total_withdrawn || 0);
-
-        // Convert currencies
-        if (baseCurrency !== displayCurrency) {
-            const rate = await getRate(baseCurrency, displayCurrency);
-            console.log(`Converting ${baseCurrency} -> ${displayCurrency} at rate ${rate}`);
-            displayBalance = displayBalance * rate;
-            displayTotalValue = displayTotalValue * rate;
-            displayActiveInvestment = displayActiveInvestment * rate;
-            displayTotalPnL = displayTotalPnL * rate;
-            displayUnrealizedPnL = displayUnrealizedPnL * rate;
-            displayTotalDeposited = displayTotalDeposited * rate;
-            displayPendingDeposits = displayPendingDeposits * rate;
-            displayTotalWithdrawn = displayTotalWithdrawn * rate;
-        }
-
-        // ============================================
-        // ADD MESSAGES TO WARNINGS (NO DEPOSIT WARNINGS)
-        // ============================================
-        
-        // Add latest unread message as warning only
+        // Add latest unread message as warning
         const latestMessage = latestMessages[0];
         if (latestMessage) {
-            // Determine message type based on admin message type
             let msgType = 'general';
             if (latestMessage.type === 'warning' || latestMessage.priority === 'high') {
                 msgType = 'warning';
@@ -178,8 +233,6 @@ router.get('/', ensureAuthenticated, async (req, res) => {
                 msgType = 'pending';
             } else if (latestMessage.type === 'welcome') {
                 msgType = 'welcome';
-            } else if (latestMessage.type === 'general') {
-                msgType = 'general';
             }
             
             warnings.unshift({
@@ -193,19 +246,16 @@ router.get('/', ensureAuthenticated, async (req, res) => {
         }
 
         console.log('Final warnings count:', warnings.length);
-        console.log('Warnings:', warnings);
 
-        // Format for display
+        // Format for display - ALL in user's display currency
         const balanceFormatted = formatCurrency(displayBalance, displayCurrency);
-        const totalValueFormatted = formatCurrency(displayTotalValue, displayCurrency);
-        const activeInvestmentFormatted = formatCurrency(displayActiveInvestment, displayCurrency);
-        const totalPnLFormatted = formatCurrency(displayTotalPnL, displayCurrency);
-        const unrealizedPnLFormatted = formatCurrency(displayUnrealizedPnL, displayCurrency);
-        
-        // FORMAT DEPOSIT STATS
-        const totalDepositsFormatted = formatCurrency(displayTotalDeposited, displayCurrency);
-        const pendingDepositsFormatted = formatCurrency(displayPendingDeposits, displayCurrency);
-        const totalWithdrawalsFormatted = formatCurrency(displayTotalWithdrawn, displayCurrency);
+        const totalValueFormatted = formatCurrency(totalValueBase, displayCurrency);
+        const activeInvestmentFormatted = formatCurrency(activeInvestmentValue, displayCurrency);
+        const totalPnLFormatted = formatCurrency(convertedTotalPnL, displayCurrency);
+        const unrealizedPnLFormatted = formatCurrency(convertedUnrealizedPnL, displayCurrency);
+        const totalDepositsFormatted = formatCurrency(totalDeposited, displayCurrency);
+        const pendingDepositsFormatted = formatCurrency(pendingDeposits, displayCurrency);
+        const totalWithdrawalsFormatted = formatCurrency(totalWithdrawn, displayCurrency);
         
         // Update session with fresh data
         req.session.user = {
@@ -217,10 +267,10 @@ router.get('/', ensureAuthenticated, async (req, res) => {
         };
 
         res.render('dashboard/dashboard', { 
-            title: 'Dashboard - Maximum',
+            title: `Dashboard - ${displayCurrency}`,
             user: user,
             holdings: holdings,
-            totalValue: displayTotalValue,
+            totalValue: totalValueBase,
             totalValueFormatted: totalValueFormatted,
             balanceFormatted: balanceFormatted,
             activeInvestmentFormatted: activeInvestmentFormatted,
@@ -240,12 +290,13 @@ router.get('/', ensureAuthenticated, async (req, res) => {
             totalDepositsFormatted: totalDepositsFormatted,
             pendingDepositsFormatted: pendingDepositsFormatted,
             totalWithdrawalsFormatted: totalWithdrawalsFormatted,
-            totalDepositsCount: depositStats.total_deposits || 0,
-            pendingDepositsCount: depositStats.total_deposits > 0 ? 
-                Math.round((depositStats.pending_deposits / depositStats.total_deposits) * 100) : 0,
-            totalWithdrawalsCount: withdrawalStats.total_withdrawals || 0,
+            totalDepositsCount: depositCount,
+            pendingDepositsCount: deposits.length > 0 ? 
+                Math.round((pendingDeposits / totalDeposited) * 100) : 0,
+            totalWithdrawalsCount: withdrawalCount,
             warnings: warnings,
             unreadMessages: unreadMessages || 0,
+            displayCurrency: displayCurrency, // Pass to template
             formatCurrency: formatCurrency
         });
         
@@ -257,7 +308,6 @@ router.get('/', ensureAuthenticated, async (req, res) => {
         });
     }
 });
-
 // POST /dashboard/warnings/:id/dismiss
 router.post('/warnings/:id/dismiss', ensureAuthenticated, async (req, res) => {
     try {
