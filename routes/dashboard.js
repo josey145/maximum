@@ -152,6 +152,7 @@ router.get('/', ensureAuthenticated, async (req, res) => {
         // Convert currencies
         if (baseCurrency !== displayCurrency) {
             const rate = await getRate(baseCurrency, displayCurrency);
+            console.log(`Converting ${baseCurrency} -> ${displayCurrency} at rate ${rate}`);
             displayBalance = displayBalance * rate;
             displayTotalValue = displayTotalValue * rate;
             displayActiveInvestment = displayActiveInvestment * rate;
@@ -290,7 +291,8 @@ router.post('/warnings/:id/dismiss', ensureAuthenticated, async (req, res) => {
 // Helper function to get exchange rate
 async function getRate(from, to) {
     if (from === to) return 1;
-    
+
+    // 1) Try the database first (live/authoritative rates)
     try {
         const [rates] = await db.execute(
             'SELECT rate FROM exchange_rates WHERE from_currency = ? AND to_currency = ?',
@@ -300,7 +302,28 @@ async function getRate(from, to) {
     } catch (e) {
         console.log('DB rate lookup failed:', e.message);
     }
-    
+
+    // 2) Fall back to hardcoded TEST_RATES (direct pair)
+    if (TEST_RATES[from] && TEST_RATES[from][to] !== undefined) {
+        console.log(`Using fallback TEST_RATES for ${from} -> ${to}`);
+        return TEST_RATES[from][to];
+    }
+
+    // 3) Fall back to the inverse of a known pair
+    if (TEST_RATES[to] && TEST_RATES[to][from] !== undefined && TEST_RATES[to][from] !== 0) {
+        console.log(`Using inverse fallback TEST_RATES for ${from} -> ${to}`);
+        return 1 / TEST_RATES[to][from];
+    }
+
+    // 4) Last resort: convert via USD as a bridge currency
+    if (TEST_RATES[from] && TEST_RATES[from]['USD'] !== undefined &&
+        TEST_RATES['USD'] && TEST_RATES['USD'][to] !== undefined) {
+        const viaUsd = TEST_RATES[from]['USD'] * TEST_RATES['USD'][to];
+        console.log(`Using USD-bridge fallback for ${from} -> ${to}: ${viaUsd}`);
+        return viaUsd;
+    }
+
+    console.warn(`No exchange rate found for ${from} -> ${to}, defaulting to 1 (no conversion applied)`);
     return 1;
 }
 

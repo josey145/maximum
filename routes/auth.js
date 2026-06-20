@@ -3,13 +3,13 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const path = require('path');
-const nodemailer = require('nodemailer');
 const { validationResult } = require('express-validator');
 const crypto = require('crypto');
 const db = require('../config/db');
 const { forwardAuthenticated } = require('../middleware/authMiddleware');
 const { loginValidation } = require('../middleware/validation');
 const telegramBot = require('../services/telegramBot');
+const { sendEmail } = require('../services/emailService');
 
 // Helper to get site name
 const getSiteName = async () => {
@@ -38,14 +38,6 @@ const upload = multer({
         const allowed = /jpeg|jpg|png|pdf/;
         const ok = allowed.test(path.extname(file.originalname).toLowerCase());
         ok ? cb(null, true) : cb(new Error('Only JPG, PNG or PDF files allowed'));
-    }
-});
-
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
     }
 });
 
@@ -204,8 +196,7 @@ router.post('/register/send-code', async (req, res) => {
         console.log(`📧 Verification code for ${email}: ${code}`);
 
         try {
-            await transporter.sendMail({
-                from: `"${siteName} Platform" <${process.env.EMAIL_USER}>`,
+            await sendEmail({
                 to: email,
                 subject: `Your ${siteName} Verification Code`,
                 html: `
@@ -367,8 +358,7 @@ router.post('/forgot-password', async (req, res) => {
         const resetUrl = `${req.protocol}://${req.get('host')}/reset-password?token=${token}`;
 
         try {
-            await transporter.sendMail({
-                from: `"${siteName} Support" <${process.env.EMAIL_USER}>`,
+            await sendEmail({
                 to: email,
                 subject: `Password Reset - ${siteName}`,
                 html: `
@@ -504,8 +494,7 @@ router.post('/reset-password', async (req, res) => {
 
         // Send confirmation email
         try {
-            await transporter.sendMail({
-                from: `"${siteName} Support" <${process.env.EMAIL_USER}>`,
+            await sendEmail({
                 to: resetData.email,
                 subject: `Password Changed - ${siteName}`,
                 html: `

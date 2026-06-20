@@ -50,15 +50,19 @@ const sendEmail = async ({ to, subject, html }) => {
                 .replace(/Maximum/g, siteName);
         }
         
-        const data = await resend.emails.send({
+        const { data, error } = await resend.emails.send({
             from: `${siteName} <support@cue-action.online>`,
             to: to,
             subject: subject.replace(/Maximum/g, siteName),
             html: processedHtml
         });
         
-        console.log(`✅ Email sent to ${to}: ${data.id}`);
-        return data;
+        if (error) {
+            throw new Error(error.message);
+        }
+        
+        console.log(`✅ Email sent to ${to}: ${data?.id || 'success'}`);
+        return { success: true, id: data?.id };
     } catch (error) {
         console.error(`❌ Failed to send email to ${to}:`, error.message);
         throw error;
