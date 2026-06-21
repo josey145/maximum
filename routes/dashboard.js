@@ -2,35 +2,14 @@ const express = require('express');
 const router = express.Router();
 const { ensureAuthenticated } = require('../middleware/authMiddleware');
 const db = require('../config/db');
-const { formatCurrency } = require('../utils/currency');
-
-// Hardcoded rates fallback
-const TEST_RATES = {
-    'USD': { 'EUR': 0.92, 'GBP': 0.79, 'NGN': 1500, 'USD': 1, 'INR': 83.5, 'PKR': 278, 'BDT': 109.5, 'PHP': 56.5, 'AED': 3.67, 'SAR': 3.75, 'ZAR': 18.5, 'KES': 129, 'GHS': 12.5, 'XOF': 605, 'XAF': 605, 'EGP': 30.9, 'MAD': 10.1 },
-    'EUR': { 'USD': 1.09, 'EUR': 1, 'INR': 90.5, 'NGN': 1635 },
-    'GBP': { 'USD': 1.27, 'GBP': 1, 'INR': 105.2 },
-    'NGN': { 'USD': 0.00067, 'NGN': 1, 'INR': 0.056 },
-    'INR': { 'USD': 0.012, 'INR': 1, 'NGN': 17.9 },
-    'PKR': { 'USD': 0.0036, 'PKR': 1 },
-    'BDT': { 'USD': 0.0091, 'BDT': 1 },
-    'PHP': { 'USD': 0.018, 'PHP': 1 },
-    'AED': { 'USD': 0.27, 'AED': 1 },
-    'SAR': { 'USD': 0.27, 'SAR': 1 },
-    'ZAR': { 'USD': 0.054, 'ZAR': 1 },
-    'KES': { 'USD': 0.0078, 'KES': 1 },
-    'GHS': { 'USD': 0.08, 'GHS': 1 },
-    'XOF': { 'USD': 0.00165, 'XOF': 1 },
-    'XAF': { 'USD': 0.00165, 'XAF': 1 },
-    'EGP': { 'USD': 0.032, 'EGP': 1 },
-    'MAD': { 'USD': 0.099, 'MAD': 1 }
-};
+const { formatCurrency, getExchangeRate } = require('../utils/currency');
 
 // Helper: Convert any amount from one currency to another
 async function convertAmount(amount, fromCurrency, toCurrency) {
     if (!amount || isNaN(amount)) return 0;
     if (fromCurrency === toCurrency) return parseFloat(amount);
     
-    const rate = await getRate(fromCurrency, toCurrency);
+    const rate = await getExchangeRate(fromCurrency, toCurrency);
     return parseFloat(amount) * rate;
 }
 
@@ -58,40 +37,51 @@ router.get('/', ensureAuthenticated, async (req, res) => {
             return res.redirect('/login');
         }
         
-       const user = users[0];
+        const user = users[0];
         const displayCurrency = user.currency || 'USD';
+        const balanceCurrency = user.balance_currency || user.currency || 'USD';
         const baseCurrency = 'USD';
 
-        // DEBUG - Now user is defined!
+        // DEBUG
         console.log('🔍 User currency:', user.currency);
         console.log('🔍 Balance currency:', user.balance_currency);
         console.log('🔍 Base currency:', baseCurrency);
         console.log('🔍 Display currency:', displayCurrency);
-        console.log('🔍 Are they same?', baseCurrency === displayCurrency);
+        console.log('🔍 Balance is already in:', balanceCurrency);
 
-        // Get exchange rate ONCE
-        const exchangeRate = await getRate(baseCurrency, displayCurrency);
+        // Get exchange rate for other conversions
+        const exchangeRate = await getExchangeRate(baseCurrency, displayCurrency);
         console.log(`💱 Exchange rate: 1 ${baseCurrency} = ${exchangeRate} ${displayCurrency}`);
 
-       
-                
-                    // Get user's holdings/investments with current prices
-            const [holdings] = await db.execute(`
-                SELECT h.*, 
-                    COALESCE(h.current_price, 0) as price,
-                    COALESCE(h.amount, 0) * COALESCE(h.current_price, 0) as value
-                FROM holdings h 
-                WHERE h.user_id = ?
-            `, [userId]);
-            
-            // Calculate portfolio value - CONVERT each holding to display currency
-            let totalValueBase = 0;
-            for (const h of holdings) {
-                const rawValue = parseFloat(h.value) || 0;
-                const convertedValue = await convertAmount(rawValue, baseCurrency, displayCurrency);
-                h.converted_value = convertedValue;
-                totalValueBase += convertedValue;
-            }
+        // ============================================
+        // FIX: Balance is already stored in balanceCurrency
+        // Only convert if balanceCurrency !== displayCurrency
+        // ============================================
+        let displayBalance = parseFloat(user.balance) || 0;
+        if (balanceCurrency !== displayCurrency) {
+            displayBalance = await convertAmount(displayBalance, balanceCurrency, displayCurrency);
+            console.log(`💰 Balance converted from ${balanceCurrency} to ${displayCurrency}: ${displayBalance}`);
+        } else {
+            console.log(`💰 Balance already in ${displayCurrency}, no conversion needed: ${displayBalance}`);
+        }
+
+        // Get user's holdings/investments with current prices
+        const [holdings] = await db.execute(`
+            SELECT h.*, 
+                COALESCE(h.current_price, 0) as price,
+                COALESCE(h.amount, 0) * COALESCE(h.current_price, 0) as value
+            FROM holdings h 
+            WHERE h.user_id = ?
+        `, [userId]);
+        
+        // Calculate portfolio value - CONVERT each holding to display currency
+        let totalValueBase = 0;
+        for (const h of holdings) {
+            const rawValue = parseFloat(h.value) || 0;
+            const convertedValue = await convertAmount(rawValue, baseCurrency, displayCurrency);
+            h.converted_value = convertedValue;
+            totalValueBase += convertedValue;
+        }
 
         // Get REAL trading stats from forex_trades
         const [tradeStats] = await db.execute(`
@@ -194,9 +184,6 @@ router.get('/', ensureAuthenticated, async (req, res) => {
             withdrawalCount++;
         }
 
-        // Convert balance
-        const displayBalance = await convertAmount(user.balance, baseCurrency, displayCurrency);
-
         // ============================================
         // GET WARNINGS FROM DATABASE
         // ============================================
@@ -296,7 +283,7 @@ router.get('/', ensureAuthenticated, async (req, res) => {
             totalWithdrawalsCount: withdrawalCount,
             warnings: warnings,
             unreadMessages: unreadMessages || 0,
-            displayCurrency: displayCurrency, // Pass to template
+            displayCurrency: displayCurrency,
             formatCurrency: formatCurrency
         });
         
@@ -308,6 +295,7 @@ router.get('/', ensureAuthenticated, async (req, res) => {
         });
     }
 });
+
 // POST /dashboard/warnings/:id/dismiss
 router.post('/warnings/:id/dismiss', ensureAuthenticated, async (req, res) => {
     try {
@@ -337,44 +325,5 @@ router.post('/warnings/:id/dismiss', ensureAuthenticated, async (req, res) => {
         res.status(500).json({ error: 'Failed to dismiss warning' });
     }
 });
-
-// Helper function to get exchange rate
-async function getRate(from, to) {
-    if (from === to) return 1;
-
-    // 1) Try the database first (live/authoritative rates)
-    try {
-        const [rates] = await db.execute(
-            'SELECT rate FROM exchange_rates WHERE from_currency = ? AND to_currency = ?',
-            [from, to]
-        );
-        if (rates.length > 0) return parseFloat(rates[0].rate);
-    } catch (e) {
-        console.log('DB rate lookup failed:', e.message);
-    }
-
-    // 2) Fall back to hardcoded TEST_RATES (direct pair)
-    if (TEST_RATES[from] && TEST_RATES[from][to] !== undefined) {
-        console.log(`Using fallback TEST_RATES for ${from} -> ${to}`);
-        return TEST_RATES[from][to];
-    }
-
-    // 3) Fall back to the inverse of a known pair
-    if (TEST_RATES[to] && TEST_RATES[to][from] !== undefined && TEST_RATES[to][from] !== 0) {
-        console.log(`Using inverse fallback TEST_RATES for ${from} -> ${to}`);
-        return 1 / TEST_RATES[to][from];
-    }
-
-    // 4) Last resort: convert via USD as a bridge currency
-    if (TEST_RATES[from] && TEST_RATES[from]['USD'] !== undefined &&
-        TEST_RATES['USD'] && TEST_RATES['USD'][to] !== undefined) {
-        const viaUsd = TEST_RATES[from]['USD'] * TEST_RATES['USD'][to];
-        console.log(`Using USD-bridge fallback for ${from} -> ${to}: ${viaUsd}`);
-        return viaUsd;
-    }
-
-    console.warn(`No exchange rate found for ${from} -> ${to}, defaulting to 1 (no conversion applied)`);
-    return 1;
-}
 
 module.exports = router;
