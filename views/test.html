@@ -1,7 +1,116 @@
-<form action="http://localhost:3000/test-currency" method="POST">
-    <select name="currency">
-        <option value="EUR">EUR</option>
-        <option value="USD">USD</option>
-    </select>
-    <button type="submit">Test Convert</button>
-</form>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Naija Delicacies Order</title>
+    <style>
+        /* Modern styling with a professional food background */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: url('https://images.unsplash.com/photo-1604328698692-f76ea9498e76?q=80&w=2070&auto=format&fit=crop') no-repeat center center fixed;
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .order-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        h2 { color: #d35400; margin-bottom: 20px; }
+
+        .item { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-bottom: 20px; 
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        input { 
+            width: 50px; 
+            padding: 8px; 
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        button { 
+            width: 100%; 
+            padding: 15px; 
+            background: #e67e22; 
+            color: white; 
+            border: none; 
+            border-radius: 10px; 
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover { background: #d35400; }
+
+        #total { 
+            font-size: 1.5em; 
+            color: #2c3e50; 
+            margin: 20px 0; 
+        }
+    </style>
+</head>
+<body>
+
+<div class="order-card">
+    <h2>Naija Street Snacks</h2>
+    
+    <div class="item">
+        <span>Akara (Beans Cake) - ₦200</span>
+        <input type="number" id="akara" value="0" min="0">
+    </div>
+    <div class="item">
+        <span>Corn/Pap - ₦300</span>
+        <input type="number" id="corn" value="0" min="0">
+    </div>
+    <div class="item">
+        <span>Kulikuli - ₦150</span>
+        <input type="number" id="kulikuli" value="0" min="0">
+    </div>
+
+    <div id="total">Total: ₦0</div>
+    <button onclick="placeOrder()">Order Now</button>
+</div>
+
+<script>
+    const prices = { akara: 200, corn: 300, kulikuli: 150 };
+
+    function calculateTotal() {
+        let total = (document.getElementById('akara').value * prices.akara) +
+                    (document.getElementById('corn').value * prices.corn) +
+                    (document.getElementById('kulikuli').value * prices.kulikuli);
+        document.getElementById('total').innerText = "Total: ₦" + total;
+    }
+
+    // Add event listeners to all inputs
+    document.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', calculateTotal);
+    });
+
+    function placeOrder() {
+        const total = document.getElementById('total').innerText;
+        alert("Delicious! Your order is being prepared. " + total);
+    }
+</script>
+
+</body>
+</html>

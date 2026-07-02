@@ -1,25 +1,81 @@
 <%- include('partials/head') %>
+
+<!-- ============== PRELOADER ============== -->
+<div class="preloader" id="preloader">
+    <div class="preloader-mark">
+        <div class="preloader-logo">C</div>
+        <svg class="preloader-ring" viewBox="0 0 60 60">
+            <circle cx="30" cy="30" r="26"></circle>
+        </svg>
+    </div>
+    <div class="preloader-label">CUE-ACTION</div>
+    <div class="preloader-bar"><span></span></div>
+</div>
+
 <%- include('partials/navbar') %>
+
+<!-- ============== BOTTOM PRICE TICKER ============== -->
+<div class="price-ticker" id="priceTicker">
+    <div class="price-ticker-track" id="priceTickerTrack">
+        <!-- items are duplicated in JS for a seamless loop; only one set is written here -->
+        <div class="ticker-item">
+            <i class="fab fa-ethereum ticker-icon" style="color:#818cf8;"></i>
+            <span class="ticker-sym">Ethereum</span>
+            <span class="ticker-price">1,619.4</span>
+            <span class="ticker-change positive">+11.60 (+0.72%)</span>
+        </div>
+        <div class="ticker-item">
+            <i class="fas fa-car-side ticker-icon" style="color:#e82127;"></i>
+            <span class="ticker-sym">TSLA</span>
+            <span class="ticker-price">425.30<sup>D</sup></span>
+            <span class="ticker-change positive">+4.70 (+1.12%)</span>
+        </div>
+        <div class="ticker-item">
+            <i class="fab fa-amazon ticker-icon" style="color:#ff9900;"></i>
+            <span class="ticker-sym">AMZN</span>
+            <span class="ticker-price">241.70<sup>D</sup></span>
+            <span class="ticker-change positive">+3.36 (+1.41%)</span>
+        </div>
+        <div class="ticker-item">
+            <i class="fab fa-apple ticker-icon" style="color:#eef1f8;"></i>
+            <span class="ticker-sym">AAPL</span>
+            <span class="ticker-price">294.38<sup>D</sup></span>
+            <span class="ticker-change positive">+5.02 (+1.73%)</span>
+        </div>
+        <div class="ticker-item">
+            <i class="fab fa-facebook ticker-icon" style="color:#6c7fff;"></i>
+            <span class="ticker-sym">META</span>
+            <span class="ticker-price">612.91<sup>D</sup></span>
+            <span class="ticker-change positive">+49.62 (+8.80%)</span>
+        </div>
+        <div class="ticker-item">
+            <i class="fab fa-bitcoin ticker-icon" style="color:#f7931a;"></i>
+            <span class="ticker-sym">Bitcoin</span>
+            <span class="ticker-price" id="tickerBtcPrice">60,299</span>
+            <span class="ticker-change positive" id="tickerBtcChange">+335.00 (+0.56%)</span>
+        </div>
+    </div>
+</div>
 
 <!-- ============== HERO ============== -->
 <section class="hero">
     <div class="hero-grid">
         <div>
-            <div class="badge">
+            <div class="badge reveal reveal-load" style="--delay: 0.05s;">
                 <i class="fas fa-circle" style="color: var(--signal);"></i>
                 Live markets &middot; 24/5
             </div>
 
-            <h1 class="hero-title">
+            <h1 class="hero-title reveal reveal-load" style="--delay: 0.15s;">
                 Trade <span class="gradient-text">with clarity</span>,<br>
                 not guesswork.
             </h1>
 
-            <p class="hero-subtitle">
+            <p class="hero-subtitle reveal reveal-load" style="--delay: 0.25s;">
                 CUE-ACTION pairs real-time pricing with expert-built strategy tools, so every trade you place is an informed one.
             </p>
 
-            <div class="hero-buttons">
+            <div class="hero-buttons reveal reveal-load" style="--delay: 0.35s;">
                 <a href="/register" class="btn btn-primary">
                     <i class="fas fa-user-plus"></i>
                     Create Account
@@ -30,7 +86,7 @@
                 </a>
             </div>
 
-            <div class="participants">
+            <div class="participants reveal reveal-load" style="--delay: 0.45s;">
                 <div class="avatar-group">
                     <div class="avatar"><i class="fas fa-user"></i></div>
                     <div class="avatar"><i class="fas fa-user"></i></div>
@@ -44,24 +100,35 @@
             </div>
         </div>
 
-        <!-- Live price panel replaces generic device mockups -->
-        <div class="hero-panel">
-            <div class="hero-panel-label">
-                <div class="pair">
-                    <span class="pair-dot"></span>
-                    Bitcoin &middot; BTC/USD
+        <!-- Visual column: device mockup image + live price panel overlaid on top -->
+        <div class="hero-visual reveal reveal-load" style="--delay: 0.3s;">
+
+            <!-- Device mockup image (monitor + phone graphic) -->
+            <img
+                src="/image/agi22.png"
+                alt="CUE-ACTION trading platform preview on desktop and mobile"
+                class="hero-mockup-img"
+            >
+
+            <!-- Live price panel replaces generic device mockups -->
+            <div class="hero-panel">
+                <div class="hero-panel-label">
+                    <div class="pair">
+                        <span class="pair-dot"></span>
+                        Bitcoin &middot; BTC/USD
+                    </div>
+                    <span class="live-tag">LIVE</span>
                 </div>
-                <span class="live-tag">LIVE</span>
-            </div>
 
-            <div class="price-main" id="currentPrice">$0.00</div>
-            <div class="price-change positive" id="priceChange">
-                <i class="fas fa-arrow-up"></i>
-                <span id="changePercent">0.00%</span>
-            </div>
+                <div class="price-main" id="currentPrice">$0.00</div>
+                <div class="price-change positive" id="priceChange">
+                    <i class="fas fa-arrow-up"></i>
+                    <span id="changePercent">0.00%</span>
+                </div>
 
-            <div class="chart-container">
-                <canvas id="priceChart" height="180"></canvas>
+                <div class="chart-container">
+                    <canvas id="priceChart" height="180"></canvas>
+                </div>
             </div>
         </div>
     </div>
@@ -83,29 +150,29 @@
 
 <!-- ============== ADVANTAGE / FEATURES ============== -->
 <section class="section">
-    <div class="section-head">
+    <div class="section-head reveal">
         <span class="section-eyebrow">Why traders stay</span>
         <h2 class="section-title">Built for people who take trading seriously</h2>
         <p class="section-subtitle">Every part of the platform is designed around one goal: helping you execute with confidence.</p>
     </div>
 
     <div class="feature-grid">
-        <div class="feature-card">
+        <div class="feature-card reveal" style="--delay: 0s;">
             <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
             <h3>Secured Funds</h3>
             <p>Multi-level SSL encryption and segregated accounts held with affiliated financial institutions.</p>
         </div>
-        <div class="feature-card">
+        <div class="feature-card reveal" style="--delay: 0.08s;">
             <div class="feature-icon"><i class="fas fa-layer-group"></i></div>
             <h3>Cross-Asset Trading</h3>
             <p>Trade currencies, indices, spot metals, energies, and futures from a single account.</p>
         </div>
-        <div class="feature-card">
+        <div class="feature-card reveal" style="--delay: 0.16s;">
             <div class="feature-icon"><i class="fas fa-bolt"></i></div>
             <h3>Instant Execution</h3>
             <p>Place trades 24 hours a day, 5 days a week, from any device, anywhere in the world.</p>
         </div>
-        <div class="feature-card">
+        <div class="feature-card reveal" style="--delay: 0.24s;">
             <div class="feature-icon"><i class="fas fa-headset"></i></div>
             <h3>Expert Support</h3>
             <p>24/5 support from a team that actually understands markets, not just tickets.</p>
@@ -121,14 +188,14 @@
 
 <!-- ============== LIVE MARKET ============== -->
 <section class="section">
-    <div class="section-head">
+    <div class="section-head reveal">
         <span class="section-eyebrow">Right now</span>
         <h2 class="section-title">Track the market, then trade it</h2>
         <p class="section-subtitle">A snapshot of what's moving today &mdash; the same data feeding your trading dashboard.</p>
     </div>
 
     <div class="market-grid">
-        <div class="market-card">
+        <div class="market-card reveal" style="--delay: 0s;">
             <div class="market-card-head">
                 <div class="market-icon" style="color:#4285f4;"><i class="fab fa-google"></i></div>
                 <div>
@@ -140,7 +207,7 @@
             <div class="price-change positive"><i class="fas fa-arrow-up"></i> 1.07%</div>
         </div>
 
-        <div class="market-card">
+        <div class="market-card reveal" style="--delay: 0.08s;">
             <div class="market-card-head">
                 <div class="market-icon" style="color:#ff9900;"><i class="fab fa-amazon"></i></div>
                 <div>
@@ -152,7 +219,7 @@
             <div class="price-change positive"><i class="fas fa-arrow-up"></i> 1.41%</div>
         </div>
 
-        <div class="market-card">
+        <div class="market-card reveal" style="--delay: 0.16s;">
             <div class="market-card-head">
                 <div class="market-icon" style="color:#e82127;"><i class="fas fa-car-side"></i></div>
                 <div>
@@ -164,7 +231,7 @@
             <div class="price-change positive"><i class="fas fa-arrow-up"></i> 1.12%</div>
         </div>
 
-        <div class="market-card">
+        <div class="market-card reveal" style="--delay: 0.24s;">
             <div class="market-card-head">
                 <div class="market-icon" style="color:#eef1f8;"><i class="fab fa-apple"></i></div>
                 <div>
@@ -186,23 +253,23 @@
 
 <!-- ============== PROCESS (real 3-step sequence) ============== -->
 <section class="section">
-    <div class="section-head">
+    <div class="section-head reveal">
         <span class="section-eyebrow">Getting started</span>
         <h2 class="section-title">Three steps, then you're trading</h2>
     </div>
 
     <div class="steps">
-        <div class="step-card">
+        <div class="step-card reveal" style="--delay: 0s;">
             <span class="step-number">01 &mdash; REGISTER</span>
             <h3>Verify your identity</h3>
             <p>Sign up and confirm your identity with one of our trusted verification partners.</p>
         </div>
-        <div class="step-card">
+        <div class="step-card reveal" style="--delay: 0.1s;">
             <span class="step-number">02 &mdash; FUND</span>
             <h3>Deposit funds</h3>
             <p>Securely connect a bank account or wallet and move funds into your trading account.</p>
         </div>
-        <div class="step-card">
+        <div class="step-card reveal" style="--delay: 0.2s;">
             <span class="step-number">03 &mdash; TRADE</span>
             <h3>Place your first trade</h3>
             <p>Buy, sell, and swap across asset classes 24/7, sized however works for you.</p>
@@ -212,7 +279,7 @@
 
 <!-- ============== FINAL CTA ============== -->
 <section class="section" style="padding-top: 0;">
-    <div class="cta-band">
+    <div class="cta-band reveal">
         <h2>Your next trade starts here</h2>
         <p>Join over a million traders already using CUE-ACTION.</p>
         <a href="/register" class="btn btn-primary">
@@ -224,7 +291,222 @@
 
 <%- include('partials/footer') %>
 
+<style>
+    /* ==================== PRELOADER ==================== */
+    .preloader {
+        position: fixed;
+        inset: 0;
+        z-index: 5000;
+        background: var(--void);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+    .preloader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+    .preloader-mark { position: relative; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; }
+    .preloader-logo {
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 700;
+        font-size: 20px;
+        color: var(--signal);
+    }
+    .preloader-ring {
+        position: absolute; inset: 0;
+        transform: rotate(-90deg);
+        animation: spinRing 1.4s linear infinite;
+    }
+    .preloader-ring circle {
+        fill: none;
+        stroke: var(--signal);
+        stroke-width: 2;
+        stroke-dasharray: 60 100;
+        stroke-linecap: round;
+    }
+    @keyframes spinRing { to { transform: rotate(270deg); } }
+
+    .preloader-label {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 11px;
+        letter-spacing: 3px;
+        color: var(--mist);
+    }
+
+    .preloader-bar {
+        width: 140px; height: 3px;
+        background: var(--surface-2);
+        border-radius: 2px;
+        overflow: hidden;
+    }
+    .preloader-bar span {
+        display: block;
+        height: 100%;
+        width: 40%;
+        background: linear-gradient(90deg, var(--signal), var(--bridge));
+        border-radius: 2px;
+        animation: barSlide 1.1s ease-in-out infinite;
+    }
+    @keyframes barSlide {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(350%); }
+    }
+
+    /* ==================== HERO VISUAL / MOCKUP IMAGE ==================== */
+    .hero-visual {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 380px;
+    }
+
+    .hero-mockup-img {
+        width: 100%;
+        max-width: 620px;
+        height: auto;
+        display: block;
+        position: relative;
+        z-index: 1;
+        filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.45));
+    }
+
+    /* Live price panel sits layered on top of the mockup image,
+       positioned toward the lower-right like a floating widget */
+    .hero-visual .hero-panel {
+        position: absolute;
+        bottom: -10px;
+        right: 0;
+        width: 260px;
+        z-index: 2;
+    }
+
+    @media (max-width: 900px) {
+        .hero-visual { min-height: unset; flex-direction: column; gap: 20px; }
+        .hero-visual .hero-panel {
+            position: static;
+            width: 100%;
+        }
+    }
+
+    /* ==================== BOTTOM PRICE TICKER ==================== */
+    .price-ticker {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 2000;
+        height: 42px;
+        background: var(--surface-1, #0d1117);
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+    }
+    .price-ticker-track {
+        display: flex;
+        align-items: center;
+        white-space: nowrap;
+        animation: tickerScroll 30s linear infinite;
+        will-change: transform;
+    }
+    .price-ticker:hover .price-ticker-track { animation-play-state: paused; }
+
+    @keyframes tickerScroll {
+        0%   { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+
+    .ticker-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 24px;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 12.5px;
+        color: var(--mist, #a3adc2);
+        border-right: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .ticker-icon { font-size: 14px; }
+    .ticker-sym { color: #eef1f8; font-weight: 600; }
+    .ticker-price { color: #eef1f8; }
+    .ticker-change.positive { color: var(--signal, #00e6a0); }
+    .ticker-change.negative { color: #ff5c72; }
+
+    /* keep page content from hiding behind the fixed ticker bar */
+    body { padding-bottom: 42px; }
+
+    @media (max-width: 600px) {
+        .ticker-item { padding: 0 16px; font-size: 11.5px; }
+    }
+
+    /* ==================== SCROLL / ENTRANCE REVEAL ==================== */
+    .reveal {
+        opacity: 0;
+        transform: translateY(22px);
+        transition: opacity 0.7s ease, transform 0.7s ease;
+        transition-delay: var(--delay, 0s);
+    }
+    .reveal.in-view { opacity: 1; transform: translateY(0); }
+
+    @media (prefers-reduced-motion: reduce) {
+        .preloader { display: none; }
+        .reveal, .reveal.in-view { opacity: 1; transform: none; transition: none; }
+    }
+</style>
+
 <script>
+    // ---------- Bottom ticker: duplicate items for seamless scroll ----------
+    (function () {
+        const track = document.getElementById('priceTickerTrack');
+        if (track) {
+            track.innerHTML += track.innerHTML; // duplicate once so the 50% translate loops seamlessly
+        }
+    })();
+
+    // ---------- Preloader ----------
+    (function () {
+        const pre = document.getElementById('preloader');
+        function hidePreloader() {
+            pre.classList.add('hidden');
+            document.body.classList.add('loaded');
+        }
+        if (document.readyState === 'complete') {
+            setTimeout(hidePreloader, 300);
+        } else {
+            window.addEventListener('load', function () { setTimeout(hidePreloader, 300); });
+        }
+        // safety net so a slow asset never traps the visitor behind the preloader
+        setTimeout(hidePreloader, 4000);
+    })();
+
+    // ---------- Hero entrance ----------
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.reveal-load').forEach(function (el) {
+            requestAnimationFrame(function () { el.classList.add('in-view'); });
+        });
+    });
+
+    // ---------- Scroll reveal ----------
+    (function () {
+        const targets = document.querySelectorAll('.reveal:not(.reveal-load)');
+        if (!('IntersectionObserver' in window) || targets.length === 0) {
+            targets.forEach(function (el) { el.classList.add('in-view'); });
+            return;
+        }
+        const io = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('in-view');
+                    io.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+        targets.forEach(function (el) { io.observe(el); });
+    })();
+
     const ctx = document.getElementById('priceChart').getContext('2d');
 
     const gradient = ctx.createLinearGradient(0, 0, 0, 220);
@@ -290,6 +572,15 @@
         chart.data.labels.push(chart.data.labels.length);
         chart.data.datasets[0].data.push(data.price);
         chart.update('none');
+
+        // keep every ticker-bar Bitcoin entry (original + duplicated) in sync
+        document.querySelectorAll('#tickerBtcPrice').forEach(function (el) {
+            el.textContent = data.price.toLocaleString();
+        });
+        document.querySelectorAll('#tickerBtcChange').forEach(function (el) {
+            el.textContent = (data.change24h >= 0 ? '+' : '') + data.change24h.toFixed(2) + '%';
+            el.className = 'ticker-change ' + (data.change24h >= 0 ? 'positive' : 'negative');
+        });
     });
 
     socket.on('priceHistory', (history) => {
@@ -299,4 +590,27 @@
             chart.update();
         }
     });
+</script>
+
+<!-- ============== CHAPORT LIVE CHAT ============== -->
+<script>
+    (function () {
+        var w = window, d = document;
+        function l() {
+            var s = d.createElement('script');
+            s.type = 'text/javascript';
+            s.async = true;
+            s.src = 'https://app.chaport.com/javascripts/insert.js';
+            var ss = d.getElementsByTagName('script')[0];
+            ss.parentNode.insertBefore(s, ss);
+        }
+        if (w.chaportConfig) {
+            l();
+        } else {
+            w.chaportConfig = {
+                appId: 'YOUR_CHAPORT_APP_ID' // <-- replace with the App ID from your Chaport dashboard
+            };
+            l();
+        }
+    })();
 </script>
