@@ -1,47 +1,46 @@
 <%- include('partials/head') %>
 <%- include('partials/navbar') %>
 
-<div class="dashboard" style="padding-top: 120px;">
-    <div class="card" style="max-width: 900px; margin: 0 auto;">
-        <h1 style="font-size: 42px; margin-bottom: 24px; text-align: center;">About <span class="gradient-text">Maximum</span></h1>
-        
-        <p style="color: var(--text-secondary); font-size: 18px; line-height: 1.8; text-align: center; margin-bottom: 48px;">
-            Empowering traders worldwide with cutting-edge technology and expert guidance since 2024.
+<section class="section" style="padding-top: 140px;">
+    <div class="section-head">
+        <span class="section-eyebrow">About us</span>
+        <h1 class="section-title" style="margin: 0 auto 16px; text-align: center;">
+            Empowering traders with <span class="gradient-text">clarity</span>
+        </h1>
+        <p class="section-subtitle" style="text-align: center;">
+            <%= site.name %> gives traders worldwide cutting-edge technology and expert guidance, built for confident decisions since 2024.
         </p>
+    </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 32px; margin-bottom: 48px;">
-            <div style="text-align: center; padding: 24px;">
-                <div style="width: 64px; height: 64px; background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink)); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 28px;">
-                    <i class="fas fa-shield-alt"></i>
-                </div>
-                <h3 style="margin-bottom: 12px;">Secure Trading</h3>
-                <p style="color: var(--text-secondary);">Bank-level security with 256-bit encryption and 2FA protection.</p>
-            </div>
-
-            <div style="text-align: center; padding: 24px;">
-                <div style="width: 64px; height: 64px; background: linear-gradient(135deg, var(--accent-orange), var(--accent-pink)); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 28px;">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-                <h3 style="margin-bottom: 12px;">Real-time Data</h3>
-                <p style="color: var(--text-secondary);">Live price updates and advanced charting tools for informed decisions.</p>
-            </div>
-
-            <div style="text-align: center; padding: 24px;">
-                <div style="width: 64px; height: 64px; background: linear-gradient(135deg, var(--success), #3b82f6); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 28px;">
-                    <i class="fas fa-users"></i>
-                </div>
-                <h3 style="margin-bottom: 12px;">Expert Community</h3>
-                <p style="color: var(--text-secondary);">Join 1M+ successful traders sharing strategies and insights.</p>
-            </div>
+    <div class="feature-grid" style="margin-bottom: 60px;">
+        <div class="feature-card" style="text-align: center;">
+            <div class="feature-icon" style="margin: 0 auto 18px;"><i class="fas fa-shield-alt"></i></div>
+            <h3>Secure Trading</h3>
+            <p>Bank-level security with 256-bit encryption and two-factor authentication on every account.</p>
         </div>
 
-        <div style="background: var(--secondary-bg); border-radius: 16px; padding: 32px; text-align: center;">
-            <h2 style="margin-bottom: 16px;">Our Mission</h2>
-            <p style="color: var(--text-secondary); line-height: 1.8; max-width: 600px; margin: 0 auto;">
-                To democratize cryptocurrency trading by providing a secure, intuitive platform that empowers everyone from beginners to experts to trade successfully and safely.
-            </p>
+        <div class="feature-card" style="text-align: center;">
+            <div class="feature-icon" style="margin: 0 auto 18px; background: var(--bridge-dim); color: var(--bridge);"><i class="fas fa-chart-line"></i></div>
+            <h3>Real-Time Data</h3>
+            <p>Live price updates and advanced charting tools that keep every decision informed.</p>
+        </div>
+
+        <div class="feature-card" style="text-align: center;">
+            <div class="feature-icon" style="margin: 0 auto 18px; background: var(--alert-dim); color: var(--alert);"><i class="fas fa-users"></i></div>
+            <h3>Expert Community</h3>
+            <p>Join 1M+ traders sharing strategies, insight, and market calls in real time.</p>
         </div>
     </div>
-</div>
+
+    <div class="cta-band" style="text-align: left; padding: 44px;">
+        <span class="section-eyebrow">Our mission</span>
+        <h2 style="margin-bottom: 14px;">Trading that's fair, transparent, and yours to control</h2>
+        <p style="max-width: 640px;">
+            We're building a platform that gives everyone, from first-time traders to seasoned professionals,
+            the tools and honesty they need to trade successfully and safely. No hidden fees, no black-box pricing &mdash;
+            just a clear view of the market and the controls to act on it.
+        </p>
+    </div>
+</section>
 
 <%- include('partials/footer') %>

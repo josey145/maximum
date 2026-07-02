@@ -1,15 +1,12 @@
 <footer class="footer">
     <div class="footer-content">
-
-        <!-- Logo -->
-        <div class="logo" style="font-size: 16px;">
-            <div class="logo-icon" style="width: 32px; height: 32px; font-size: 14px;">M</div>
+        <div class="logo" style="font-size: 15px;">
+            <div class="logo-icon" style="width: 30px; height: 30px; font-size: 13px;">C</div>
             <span><%= site.name %></span>
         </div>
 
-        <!-- Links -->
         <div class="footer-links">
-            <a href="/terms"   class="footer-link">Terms</a>
+            <a href="/terms" class="footer-link">Terms</a>
             <a href="/privacy" class="footer-link">Privacy</a>
             <a href="/contact" class="footer-link">Contact</a>
             <% if (site.support_email) { %>
@@ -24,171 +21,89 @@
             <% } %>
         </div>
 
-        <!-- Support Button Row -->
-        <div style="margin: 16px 0; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; align-items: center;">
-            
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; align-items: center;">
             <% if (site.support_whatsapp) { %>
-                <a href="https://wa.me/<%= site.support_whatsapp.replace(/\D/g, '') %>" 
-                   target="_blank" 
-                   class="support-btn whatsapp-btn">
-                    <i class="fab fa-whatsapp"></i>
+                <a href="https://wa.me/<%= site.support_whatsapp.replace(/\D/g, '') %>" target="_blank" class="support-btn">
+                    <i class="fab fa-whatsapp" style="color: var(--signal);"></i>
                     <span>Chat on WhatsApp</span>
                 </a>
             <% } %>
-
             <% if (site.support_email) { %>
-                <a href="mailto:<%= site.support_email %>" 
-                   class="support-btn email-btn">
-                    <i class="fas fa-envelope"></i>
+                <a href="mailto:<%= site.support_email %>" class="support-btn">
+                    <i class="fas fa-envelope" style="color: var(--bridge);"></i>
                     <span>Email Support</span>
                 </a>
             <% } %>
-
             <% if (site.support_phone) { %>
-                <a href="tel:<%= site.support_phone %>" 
-                   class="support-btn phone-btn">
-                    <i class="fas fa-phone"></i>
+                <a href="tel:<%= site.support_phone %>" class="support-btn">
+                    <i class="fas fa-phone" style="color: var(--bridge);"></i>
                     <span>Call Us</span>
                 </a>
             <% } %>
-
         </div>
 
-        <!-- Copyright -->
-        <div style="color: var(--text-secondary); font-size: 14px;">
+        <div style="color: var(--mist); font-size: 13px;">
             &copy; <%= site.current_year %> <%= site.name %>. All rights reserved.
         </div>
     </div>
 </footer>
 
-<!-- Support Button Styles -->
-<style>
-    .support-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 10px 20px;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: 600;
-        text-decoration: none;
-        transition: all 0.3s ease;
-        cursor: pointer;
-    }
-
-    .support-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-
-    .whatsapp-btn {
-        background-color: #25D366;
-        color: white !important;
-        border: 2px solid #25D366;
-    }
-
-    .whatsapp-btn:hover {
-        background-color: #128C7E;
-        border-color: #128C7E;
-    }
-
-    .email-btn {
-        background-color: #4A90E2;
-        color: white !important;
-        border: 2px solid #4A90E2;
-    }
-
-    .email-btn:hover {
-        background-color: #357ABD;
-        border-color: #357ABD;
-    }
-
-    .phone-btn {
-        background-color: #7B68EE;
-        color: white !important;
-        border: 2px solid #7B68EE;
-    }
-
-    .phone-btn:hover {
-        background-color: #6A5ACD;
-        border-color: #6A5ACD;
-    }
-
-    .support-btn i {
-        font-size: 18px;
-    }
-</style>
-
 <!-- Floating WhatsApp Button -->
 <% if (site.support_whatsapp) { %>
-<a href="https://wa.me/<%= site.support_whatsapp.replace(/\D/g, '') %>" 
-   target="_blank" 
-   class="whatsapp-float"
-   aria-label="Chat on WhatsApp">
+<a href="https://wa.me/<%= site.support_whatsapp.replace(/\D/g, '') %>" target="_blank" class="whatsapp-float" aria-label="Chat on WhatsApp">
     <i class="fab fa-whatsapp"></i>
 </a>
 <% } %>
 
-<style>
-    .whatsapp-float {
-        position: fixed;
-        bottom: 24px;
-        right: 24px;
-        width: 60px;
-        height: 60px;
-        background-color: #25D366;
-        color: white;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 32px;
-        text-decoration: none;
-        box-shadow: 0 4px 16px rgba(37, 211, 102, 0.4);
-        z-index: 9999;
-        transition: all 0.3s ease;
-        animation: whatsapp-pulse 2s infinite;
-    }
-
-    .whatsapp-float:hover {
-        transform: scale(1.1) rotate(-5deg);
-        box-shadow: 0 6px 24px rgba(37, 211, 102, 0.6);
-    }
-
-    @keyframes whatsapp-pulse {
-        0% {
-            box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.5);
-        }
-        70% {
-            box-shadow: 0 0 0 20px rgba(37, 211, 102, 0);
-        }
-        100% {
-            box-shadow: 0 0 0 0 rgba(37, 211, 102, 0);
-        }
-    }
-
-    .whatsapp-float::after {
-        content: "Chat with us";
-        position: absolute;
-        right: 70px;
-        background: #333;
-        color: white;
-        padding: 6px 12px;
-        border-radius: 6px;
-        font-size: 13px;
-        white-space: nowrap;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.3s ease;
-    }
-
-    .whatsapp-float:hover::after {
-        opacity: 1;
-    }
-</style>
+<!-- ==================== PERSISTENT TICKER TAPE ==================== -->
+<div class="ticker-tape" id="tickerTape">
+    <div class="ticker-track" id="tickerTrack">
+        <div class="ticker-item"><span class="sym">BTC</span><span class="val mono" id="tickerBTC">$0.00</span><span class="chg up" id="tickerBTCChg">+0.00%</span></div>
+        <div class="ticker-item"><span class="sym">ETH</span><span class="val mono">$1,619.00</span><span class="chg up">+0.70%</span></div>
+        <div class="ticker-item"><span class="sym">TSLA</span><span class="val mono">$425.30</span><span class="chg up">+1.12%</span></div>
+        <div class="ticker-item"><span class="sym">AMZN</span><span class="val mono">$241.70</span><span class="chg up">+1.41%</span></div>
+        <div class="ticker-item"><span class="sym">AAPL</span><span class="val mono">$294.38</span><span class="chg up">+1.73%</span></div>
+        <div class="ticker-item"><span class="sym">META</span><span class="val mono">$612.91</span><span class="chg up">+8.81%</span></div>
+        <div class="ticker-item"><span class="sym">GOOGL</span><span class="val mono">$361.21</span><span class="chg up">+1.07%</span></div>
+        <div class="ticker-item"><span class="sym">EUR/USD</span><span class="val mono">1.0842</span><span class="chg down">-0.12%</span></div>
+        <!-- duplicate set for seamless loop -->
+        <div class="ticker-item"><span class="sym">BTC</span><span class="val mono" id="tickerBTC2">$0.00</span><span class="chg up" id="tickerBTCChg2">+0.00%</span></div>
+        <div class="ticker-item"><span class="sym">ETH</span><span class="val mono">$1,619.00</span><span class="chg up">+0.70%</span></div>
+        <div class="ticker-item"><span class="sym">TSLA</span><span class="val mono">$425.30</span><span class="chg up">+1.12%</span></div>
+        <div class="ticker-item"><span class="sym">AMZN</span><span class="val mono">$241.70</span><span class="chg up">+1.41%</span></div>
+        <div class="ticker-item"><span class="sym">AAPL</span><span class="val mono">$294.38</span><span class="chg up">+1.73%</span></div>
+        <div class="ticker-item"><span class="sym">META</span><span class="val mono">$612.91</span><span class="chg up">+8.81%</span></div>
+        <div class="ticker-item"><span class="sym">GOOGL</span><span class="val mono">$361.21</span><span class="chg up">+1.07%</span></div>
+        <div class="ticker-item"><span class="sym">EUR/USD</span><span class="val mono">1.0842</span><span class="chg down">-0.12%</span></div>
+    </div>
+</div>
 
 <!-- Socket.IO -->
 <script src="/socket.io/socket.io.js"></script>
+
+<script>
+    // Keep the persistent ticker tape's BTC entry live wherever a socket connection exists.
+    (function () {
+        if (typeof io === 'undefined') return;
+        const tickerSocket = io();
+        tickerSocket.on('btcPrice', (data) => {
+            const price = '$' + data.price.toLocaleString();
+            const change = data.change24h.toFixed(2);
+            const isUp = data.change24h >= 0;
+            ['tickerBTC', 'tickerBTC2'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = price;
+            });
+            ['tickerBTCChg', 'tickerBTCChg2'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.textContent = (isUp ? '+' : '') + change + '%';
+                    el.className = 'chg ' + (isUp ? 'up' : 'down');
+                }
+            });
+        });
+    })();
+</script>
 
 <!-- Flash Messages Auto-hide -->
 <script>

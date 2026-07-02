@@ -1,45 +1,104 @@
 <%- include('partials/head') %>
 <%- include('partials/navbar') %>
 
-<div class="dashboard" style="padding-top: 120px;">
-    <div class="card" style="max-width: 800px; margin: 0 auto;">
-        <h1 style="font-size: 36px; margin-bottom: 32px; text-align: center;">Frequently Asked Questions</h1>
-        
-        <div style="margin-bottom: 32px;">
-            <h3 style="color: var(--accent-purple); margin-bottom: 12px;">What is Maximum?</h3>
-            <p style="color: var(--text-secondary); line-height: 1.8;">
-                Maximum is a professional cryptocurrency trading platform that allows you to trade Bitcoin and other cryptocurrencies safely and successfully with real-time price tracking.
-            </p>
-        </div>
-
-        <div style="margin-bottom: 32px;">
-            <h3 style="color: var(--accent-purple); margin-bottom: 12px;">How do I start trading?</h3>
-            <p style="color: var(--text-secondary); line-height: 1.8;">
-                Simply create an account, verify your email, and deposit funds to start trading. Our platform provides expert guidance for both beginners and experienced traders.
-            </p>
-        </div>
-
-        <div style="margin-bottom: 32px;">
-            <h3 style="color: var(--accent-purple); margin-bottom: 12px;">Is my money safe?</h3>
-            <p style="color: var(--text-secondary); line-height: 1.8;">
-                Yes, we use industry-standard security measures including encryption, secure authentication, and regular security audits to protect your funds and data.
-            </p>
-        </div>
-
-        <div style="margin-bottom: 32px;">
-            <h3 style="color: var(--accent-purple); margin-bottom: 12px;">What cryptocurrencies can I trade?</h3>
-            <p style="color: var(--text-secondary); line-height: 1.8;">
-                Currently we support Bitcoin (BTC) with plans to add Ethereum (ETH), Litecoin (LTC), and other major cryptocurrencies soon.
-            </p>
-        </div>
-
-        <div>
-            <h3 style="color: var(--accent-purple); margin-bottom: 12px;">How do I contact support?</h3>
-            <p style="color: var(--text-secondary); line-height: 1.8;">
-                You can reach our support team 24/7 through the contact form on our website or email us at support@maximum.com
-            </p>
-        </div>
+<section class="section" style="padding-top: 140px;">
+    <div class="section-head">
+        <span class="section-eyebrow">Support</span>
+        <h1 class="section-title" style="margin: 0 auto 16px; text-align: center;">Frequently asked questions</h1>
+        <p class="section-subtitle" style="text-align: center;">Everything you need to know before you start trading. Can't find your answer? Reach out below.</p>
     </div>
-</div>
+
+    <div class="faq-list" style="max-width: 760px; margin: 0 auto;">
+        <details class="faq-item" open>
+            <summary>
+                <span>What is <%= site.name %>?</span>
+                <i class="fas fa-chevron-down"></i>
+            </summary>
+            <p><%= site.name %> is a professional cryptocurrency trading platform that lets you trade Bitcoin and other assets safely, with real-time price tracking and transparent execution.</p>
+        </details>
+
+        <details class="faq-item">
+            <summary>
+                <span>How do I start trading?</span>
+                <i class="fas fa-chevron-down"></i>
+            </summary>
+            <p>Create an account, verify your email, and deposit funds to get started. The platform is built to guide both first-time traders and experienced ones.</p>
+        </details>
+
+        <details class="faq-item">
+            <summary>
+                <span>Is my money safe?</span>
+                <i class="fas fa-chevron-down"></i>
+            </summary>
+            <p>Yes. We use industry-standard security &mdash; encryption, secure authentication, and regular security audits &mdash; to protect your funds and data.</p>
+        </details>
+
+        <details class="faq-item">
+            <summary>
+                <span>What can I trade?</span>
+                <i class="fas fa-chevron-down"></i>
+            </summary>
+            <p>Bitcoin (BTC) is supported today, with Ethereum (ETH), Litecoin (LTC), and other major assets on the roadmap.</p>
+        </details>
+
+        <details class="faq-item">
+            <summary>
+                <span>How do I contact support?</span>
+                <i class="fas fa-chevron-down"></i>
+            </summary>
+            <p>
+                Our team is available 24/7 through the contact form on the site, or by email at
+                <% if (site.support_email) { %><a href="mailto:<%= site.support_email %>" style="color: var(--signal);"><%= site.support_email %></a><% } else { %>our support address<% } %>.
+            </p>
+        </details>
+    </div>
+
+    <div class="cta-band" style="margin-top: 56px;">
+        <h2>Still have questions?</h2>
+        <p>Our support team is online around the clock.</p>
+        <a href="/contact" class="btn btn-primary">
+            <i class="fas fa-headset"></i>
+            Contact support
+        </a>
+    </div>
+</section>
+
+<style>
+    .faq-item {
+        background: var(--surface);
+        border: 1px solid var(--edge);
+        border-radius: 14px;
+        padding: 4px 22px;
+        margin-bottom: 14px;
+        transition: border-color 0.2s ease;
+    }
+    .faq-item[open] { border-color: var(--signal); }
+    .faq-item summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 0;
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 600;
+        font-size: 16px;
+        cursor: pointer;
+        list-style: none;
+    }
+    .faq-item summary::-webkit-details-marker { display: none; }
+    .faq-item summary i {
+        color: var(--mist);
+        font-size: 13px;
+        transition: transform 0.25s ease;
+        flex-shrink: 0;
+        margin-left: 16px;
+    }
+    .faq-item[open] summary i { transform: rotate(180deg); color: var(--signal); }
+    .faq-item p {
+        color: var(--mist);
+        font-size: 14.5px;
+        line-height: 1.75;
+        padding-bottom: 20px;
+    }
+</style>
 
 <%- include('partials/footer') %>

@@ -2,23 +2,19 @@
 <%- include('../partials/navbar') %>
 
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
-
   .reg-page {
     min-height: 100vh;
-    background: #0a0a0f;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 40px 16px;
-    font-family: 'DM Sans', sans-serif;
+    padding: 120px 16px 40px;
   }
 
   .reg-card {
     width: 100%;
     max-width: 560px;
-    background: #111118;
-    border: 1px solid #1e1e2e;
+    background: var(--surface);
+    border: 1px solid var(--edge);
     border-radius: 20px;
     padding: 40px;
     position: relative;
@@ -30,7 +26,7 @@
     position: absolute;
     top: -80px; right: -80px;
     width: 260px; height: 260px;
-    background: radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 70%);
+    background: radial-gradient(circle, var(--signal-dim) 0%, transparent 70%);
     pointer-events: none;
   }
 
@@ -55,40 +51,41 @@
     left: 50%;
     width: 100%;
     height: 2px;
-    background: #1e1e2e;
+    background: var(--edge);
     z-index: 0;
     transition: background 0.4s;
   }
 
-  .prog-step.done:not(:last-child)::after { background: #8b5cf6; }
+  .prog-step.done:not(:last-child)::after { background: var(--signal); }
 
   .prog-dot {
     width: 36px; height: 36px;
     border-radius: 50%;
-    background: #1e1e2e;
-    border: 2px solid #2a2a3e;
+    background: var(--surface-2);
+    border: 2px solid var(--edge);
     display: flex; align-items: center; justify-content: center;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Space Grotesk', sans-serif;
     font-weight: 700;
     font-size: 13px;
-    color: #52525b;
+    color: var(--mist-dim);
     z-index: 1;
     transition: all 0.3s;
     position: relative;
   }
 
   .prog-step.active .prog-dot {
-    background: #8b5cf6;
-    border-color: #8b5cf6;
-    color: #fff;
-    box-shadow: 0 0 20px rgba(139,92,246,0.4);
+    background: var(--signal);
+    border-color: var(--signal);
+    color: #04140e;
+    box-shadow: 0 0 20px var(--signal-dim);
   }
 
-  .prog-step.done .prog-dot { background: #6d28d9; border-color: #6d28d9; color: #fff; }
+  .prog-step.done .prog-dot { background: transparent; border-color: var(--signal); color: var(--signal); }
 
   .prog-label {
+    font-family: 'IBM Plex Mono', monospace;
     font-size: 10px;
-    color: #52525b;
+    color: var(--mist-dim);
     margin-top: 6px;
     font-weight: 500;
     letter-spacing: 0.5px;
@@ -96,30 +93,18 @@
     white-space: nowrap;
   }
 
-  .prog-step.active .prog-label { color: #8b5cf6; }
-  .prog-step.done .prog-label { color: #6d28d9; }
+  .prog-step.active .prog-label { color: var(--signal); }
+  .prog-step.done .prog-label { color: var(--signal); }
 
   .reg-title {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Space Grotesk', sans-serif;
     font-size: 26px;
-    font-weight: 800;
-    color: #f4f4f5;
+    font-weight: 700;
+    color: var(--paper);
     margin-bottom: 4px;
   }
 
-  .reg-sub { color: #52525b; font-size: 14px; margin-bottom: 28px; }
-
-  .alert {
-    padding: 12px 16px;
-    border-radius: 10px;
-    font-size: 14px;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .alert-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #f87171; }
-  .alert-success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: #4ade80; }
+  .reg-sub { color: var(--mist); font-size: 14px; margin-bottom: 28px; }
 
   .step-panel { display: none; }
   .step-panel.active { display: block; animation: fadeUp 0.3s ease; }
@@ -132,11 +117,11 @@
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .form-group { margin-bottom: 16px; }
 
-  .form-label {
+  .reg-page .form-label {
     display: block;
     font-size: 12px;
     font-weight: 500;
-    color: #a1a1aa;
+    color: var(--mist);
     text-transform: uppercase;
     letter-spacing: 0.6px;
     margin-bottom: 6px;
@@ -147,47 +132,47 @@
     position: absolute;
     left: 14px; top: 50%;
     transform: translateY(-50%);
-    color: #3f3f5a;
+    color: var(--mist-dim);
     font-size: 14px;
     pointer-events: none;
   }
 
-  .form-input {
+  .reg-page .form-input {
     width: 100%;
-    background: #0d0d14;
-    border: 1px solid #1e1e2e;
+    background: var(--surface-2);
+    border: 1px solid var(--edge);
     border-radius: 10px;
     padding: 12px 14px 12px 42px;
-    color: #f4f4f5;
+    color: var(--paper);
     font-size: 14px;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     transition: border-color 0.2s, box-shadow 0.2s;
     box-sizing: border-box;
   }
 
-  .form-input:focus {
+  .reg-page .form-input:focus {
     outline: none;
-    border-color: #8b5cf6;
-    box-shadow: 0 0 0 3px rgba(139,92,246,0.15);
+    border-color: var(--signal);
+    box-shadow: 0 0 0 3px var(--signal-dim);
   }
 
   select.form-input { cursor: pointer; appearance: none; }
-  .form-input::placeholder { color: #3f3f5a; }
+  .reg-page .form-input::placeholder { color: var(--mist-dim); }
 
   .upload-zone {
-    border: 2px dashed #1e1e2e;
+    border: 2px dashed var(--edge);
     border-radius: 12px;
     padding: 32px 20px;
     text-align: center;
     cursor: pointer;
     transition: all 0.3s;
     position: relative;
-    background: #0d0d14;
+    background: var(--surface-2);
   }
 
   .upload-zone:hover, .upload-zone.dragover {
-    border-color: #8b5cf6;
-    background: rgba(139,92,246,0.05);
+    border-color: var(--signal);
+    background: var(--signal-dim);
   }
 
   .upload-zone input[type="file"] {
@@ -197,19 +182,19 @@
 
   .upload-icon {
     width: 52px; height: 52px;
-    background: rgba(139,92,246,0.1);
+    background: var(--signal-dim);
     border-radius: 12px;
     display: flex; align-items: center; justify-content: center;
     margin: 0 auto 12px;
     font-size: 22px;
-    color: #8b5cf6;
+    color: var(--signal);
   }
 
-  .upload-title { color: #a1a1aa; font-size: 14px; font-weight: 500; }
-  .upload-sub { color: #3f3f5a; font-size: 12px; margin-top: 4px; }
+  .upload-title { color: var(--mist); font-size: 14px; font-weight: 500; }
+  .upload-sub { color: var(--mist-dim); font-size: 12px; margin-top: 4px; }
   .upload-preview { display: none; margin-top: 12px; }
-  .upload-preview img { max-height: 120px; border-radius: 8px; border: 1px solid #1e1e2e; }
-  .upload-preview .file-name { color: #8b5cf6; font-size: 13px; margin-top: 6px; }
+  .upload-preview img { max-height: 120px; border-radius: 8px; border: 1px solid var(--edge); }
+  .upload-preview .file-name { color: var(--signal); font-size: 13px; margin-top: 6px; font-family: 'IBM Plex Mono', monospace; }
 
   .code-inputs {
     display: flex;
@@ -220,35 +205,35 @@
 
   .code-input {
     width: 64px; height: 64px;
-    background: #0d0d14;
-    border: 2px solid #1e1e2e;
+    background: var(--surface-2);
+    border: 2px solid var(--edge);
     border-radius: 12px;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Space Grotesk', sans-serif;
     font-size: 28px;
     font-weight: 700;
-    color: #f4f4f5;
+    color: var(--paper);
     text-align: center;
     transition: all 0.2s;
   }
 
   .code-input:focus {
     outline: none;
-    border-color: #8b5cf6;
-    box-shadow: 0 0 0 3px rgba(139,92,246,0.2);
+    border-color: var(--signal);
+    box-shadow: 0 0 0 3px var(--signal-dim);
   }
 
   .verify-info {
-    background: rgba(139,92,246,0.08);
-    border: 1px solid rgba(139,92,246,0.2);
+    background: var(--signal-dim);
+    border: 1px solid var(--edge);
     border-radius: 10px;
     padding: 14px 16px;
     font-size: 13px;
-    color: #a1a1aa;
+    color: var(--mist);
     text-align: center;
     margin-bottom: 8px;
   }
 
-  .verify-info strong { color: #8b5cf6; }
+  .verify-info strong { color: var(--signal); }
 
   .btn-row { display: flex; gap: 12px; margin-top: 24px; }
 
@@ -257,25 +242,25 @@
     padding: 13px;
     border-radius: 10px;
     background: transparent;
-    border: 1px solid #1e1e2e;
-    color: #a1a1aa;
-    font-family: 'DM Sans', sans-serif;
+    border: 1px solid var(--edge);
+    color: var(--mist);
+    font-family: 'Inter', sans-serif;
     font-size: 15px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
   }
 
-  .btn-back:hover { border-color: #3f3f5a; color: #f4f4f5; }
+  .btn-back:hover { border-color: var(--mist-dim); color: var(--paper); }
 
   .btn-next {
     flex: 2;
     padding: 13px;
     border-radius: 10px;
-    background: #8b5cf6;
+    background: var(--signal);
     border: none;
-    color: #fff;
-    font-family: 'Syne', sans-serif;
+    color: #04140e;
+    font-family: 'Space Grotesk', sans-serif;
     font-size: 15px;
     font-weight: 700;
     cursor: pointer;
@@ -283,26 +268,26 @@
     display: flex; align-items: center; justify-content: center; gap: 8px;
   }
 
-  .btn-next:hover { background: #7c3aed; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(139,92,246,0.3); }
+  .btn-next:hover { transform: translateY(-1px); box-shadow: 0 8px 24px var(--signal-dim); }
   .btn-next:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
   .btn-full { width: 100%; flex: unset; }
 
   .terms-row {
     display: flex; align-items: flex-start; gap: 10px;
-    margin-bottom: 20px; font-size: 13px; color: #52525b;
+    margin-bottom: 20px; font-size: 13px; color: var(--mist);
   }
-  .terms-row input { accent-color: #8b5cf6; margin-top: 3px; flex-shrink: 0; }
-  .terms-row a { color: #8b5cf6; text-decoration: none; }
+  .terms-row input { accent-color: var(--signal); margin-top: 3px; flex-shrink: 0; }
+  .terms-row a { color: var(--signal); text-decoration: none; }
 
-  .auth-footer { text-align: center; margin-top: 24px; font-size: 14px; color: #52525b; }
-  .auth-footer a { color: #8b5cf6; text-decoration: none; }
+  .reg-page .auth-footer { text-align: center; margin-top: 24px; font-size: 14px; color: var(--mist); }
+  .reg-page .auth-footer a { color: var(--signal); text-decoration: none; font-weight: 600; }
 
-  .resend-link { text-align: center; font-size: 13px; color: #52525b; margin-top: 8px; }
+  .resend-link { text-align: center; font-size: 13px; color: var(--mist); margin-top: 8px; }
   .resend-link button {
-    background: none; border: none; color: #8b5cf6;
+    background: none; border: none; color: var(--signal);
     cursor: pointer; font-size: 13px; font-family: inherit; padding: 0;
   }
-  .resend-link button:disabled { color: #52525b; cursor: not-allowed; }
+  .resend-link button:disabled { color: var(--mist-dim); cursor: not-allowed; }
 
   @media (max-width: 480px) {
     .reg-card { padding: 28px 20px; }
@@ -462,7 +447,7 @@
           <i class="fas fa-lock"></i>
           <input type="password" id="s1-password" class="form-input" placeholder="Min 8 chars, uppercase, number & symbol">
         </div>
-        <small style="color:#3f3f5a;font-size:12px;margin-top:4px;display:block;">Must contain uppercase, lowercase, number and special character</small>
+        <small style="color: var(--mist-dim); font-size:12px; margin-top:4px; display:block;">Must contain uppercase, lowercase, number and special character</small>
       </div>
 
       <div class="form-group">
@@ -520,7 +505,7 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label">Back of ID <span style="color:#3f3f5a;font-size:11px;">(optional for passport)</span></label>
+        <label class="form-label">Back of ID <span style="color: var(--mist-dim); font-size:11px;">(optional for passport)</span></label>
         <div class="upload-zone" id="upload-back">
           <input type="file" id="s2-idback" accept="image/*,.pdf">
           <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
@@ -607,18 +592,15 @@
 
   // Step navigation function
   function setStep(n) {
-    // Hide all step panels
     document.querySelectorAll('.step-panel').forEach(function(p) {
       p.classList.remove('active');
     });
-    
-    // Show current step
+
     var currentStep = document.getElementById('step-' + n);
     if (currentStep) {
       currentStep.classList.add('active');
     }
-    
-    // Update progress indicators
+
     for (var i = 1; i <= 3; i++) {
       var el = document.getElementById('prog-' + i);
       if (el) {
@@ -631,12 +613,10 @@
         }
       }
     }
-    
-    // Scroll to top
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // Save step 1 data
   function saveStep1Data() {
     formData.step1 = {
       username: document.getElementById('s1-username').value.trim(),
@@ -653,7 +633,6 @@
     };
   }
 
-  // Save step 2 data
   function saveStep2Data() {
     formData.step2 = {
       idType: document.getElementById('s2-idtype').value,
@@ -663,9 +642,7 @@
     };
   }
 
-  // Go to step 2
   function goStep2() {
-    // Validation
     var username = document.getElementById('s1-username').value.trim();
     var email = document.getElementById('s1-email').value.trim();
     var password = document.getElementById('s1-password').value;
@@ -674,7 +651,7 @@
     var phone = document.getElementById('s1-phone').value.trim();
     var currency = document.getElementById('s1-currency').value;
     var country = document.getElementById('s1-country').value;
-    
+
     if (!username || username.length < 3) {
       alert('Username must be at least 3 characters');
       return;
@@ -703,33 +680,31 @@
       alert('Password must be at least 8 characters');
       return;
     }
-    
-    // Password strength validation
+
     var hasUpper = /[A-Z]/.test(password);
     var hasLower = /[a-z]/.test(password);
     var hasNumber = /[0-9]/.test(password);
     var hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
-    
+
     if (!hasUpper || !hasLower || !hasNumber || !hasSpecial) {
       alert('Password must contain uppercase, lowercase, number and special character');
       return;
     }
-    
+
     if (password !== confirm) {
       alert('Passwords do not match');
       return;
     }
-    
+
     saveStep1Data();
     setStep(2);
   }
 
-  // Go to step 3 (send code)
   async function goStep3() {
     var idType = document.getElementById('s2-idtype').value;
     var idNumber = document.getElementById('s2-idnumber').value.trim();
     var idFront = document.getElementById('s2-idfront').files[0];
-    
+
     if (!idType) {
       alert('Please select ID type');
       return;
@@ -742,25 +717,24 @@
       alert('Please upload ID front');
       return;
     }
-    
-    // Check file size (max 5MB)
+
     if (idFront.size > 5 * 1024 * 1024) {
       alert('Front ID file must be less than 5MB');
       return;
     }
-    
+
     var idBack = document.getElementById('s2-idback').files[0];
     if (idBack && idBack.size > 5 * 1024 * 1024) {
       alert('Back ID file must be less than 5MB');
       return;
     }
-    
+
     saveStep2Data();
-    
+
     var btn = document.getElementById('btn-step2-next');
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
-    
+
     try {
       var email = document.getElementById('s1-email').value.trim();
       var res = await fetch('/register/send-code', {
@@ -769,14 +743,14 @@
         body: JSON.stringify({ email: email })
       });
       var data = await res.json();
-      
+
       if (!data.success) {
         alert(data.message || 'Failed to send code');
         btn.disabled = false;
         btn.innerHTML = 'Continue <i class="fas fa-arrow-right"></i>';
         return;
       }
-      
+
       document.getElementById('display-email').textContent = email;
       setStep(3);
       startResendTimer();
@@ -784,25 +758,24 @@
       alert('Network error. Please try again.');
       console.error(err);
     }
-    
+
     btn.disabled = false;
     btn.innerHTML = 'Continue <i class="fas fa-arrow-right"></i>';
   }
 
-  // Resend timer
   var resendTimer = null;
   function startResendTimer() {
     var btn = document.getElementById('resend-btn');
     var timerSpan = document.getElementById('resend-timer');
     var countdown = document.getElementById('countdown');
     var seconds = 60;
-    
+
     btn.style.display = 'none';
     timerSpan.style.display = 'inline';
     countdown.textContent = seconds;
-    
+
     if (resendTimer) clearInterval(resendTimer);
-    
+
     resendTimer = setInterval(function() {
       seconds--;
       countdown.textContent = seconds;
@@ -813,83 +786,75 @@
       }
     }, 1000);
   }
-// Handle file upload preview
-function handleFileUpload(inputId, previewId, zoneId) {
-  var input = document.getElementById(inputId);
-  var preview = document.getElementById(previewId);
-  var zone = document.getElementById(zoneId);
-  
-  if (!input || !preview || !zone) return;
-  
-  input.addEventListener('change', function(e) {
-    var file = e.target.files[0];
-    if (!file) {
-      preview.style.display = 'none';
-      zone.querySelector('.upload-icon').style.display = 'flex';
-      zone.querySelector('.upload-title').style.display = 'block';
-      zone.querySelector('.upload-sub').style.display = 'block';
-      return;
-    }
-    
-    preview.style.display = 'block';
-    preview.innerHTML = '';
-    zone.querySelector('.upload-icon').style.display = 'none';
-    zone.querySelector('.upload-title').style.display = 'none';
-    zone.querySelector('.upload-sub').style.display = 'none';
-    
-    if (file.type.startsWith('image/')) {
-      var reader = new FileReader();
-      reader.onload = function(e) {
-        var img = document.createElement('img');
-        img.src = e.target.result;
-        img.style.maxHeight = '120px';
-        img.style.borderRadius = '8px';
-        img.style.border = '1px solid #1e1e2e';
-        preview.appendChild(img);
-      };
-      reader.readAsDataURL(file);
-    }
-    
-    var fileName = document.createElement('div');
-    fileName.className = 'file-name';
-    fileName.textContent = file.name;
-    preview.appendChild(fileName);
-  });
-  
-  // Drag and drop
-  zone.addEventListener('dragover', function(e) {
-    e.preventDefault();
-    zone.classList.add('dragover');
-  });
-  
-  zone.addEventListener('dragleave', function() {
-    zone.classList.remove('dragover');
-  });
-  
-  zone.addEventListener('drop', function(e) {
-    e.preventDefault();
-    zone.classList.remove('dragover');
-    var files = e.dataTransfer.files;
-    if (files.length > 0) {
-      input.files = files;
-      input.dispatchEvent(new Event('change'));
-    }
-  });
-}
 
-  // Setup event listeners when page loads
+  function handleFileUpload(inputId, previewId, zoneId) {
+    var input = document.getElementById(inputId);
+    var preview = document.getElementById(previewId);
+    var zone = document.getElementById(zoneId);
+
+    if (!input || !preview || !zone) return;
+
+    input.addEventListener('change', function(e) {
+      var file = e.target.files[0];
+      if (!file) {
+        preview.style.display = 'none';
+        zone.querySelector('.upload-icon').style.display = 'flex';
+        zone.querySelector('.upload-title').style.display = 'block';
+        zone.querySelector('.upload-sub').style.display = 'block';
+        return;
+      }
+
+      preview.style.display = 'block';
+      preview.innerHTML = '';
+      zone.querySelector('.upload-icon').style.display = 'none';
+      zone.querySelector('.upload-title').style.display = 'none';
+      zone.querySelector('.upload-sub').style.display = 'none';
+
+      if (file.type.startsWith('image/')) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          var img = document.createElement('img');
+          img.src = e.target.result;
+          preview.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+      }
+
+      var fileName = document.createElement('div');
+      fileName.className = 'file-name';
+      fileName.textContent = file.name;
+      preview.appendChild(fileName);
+    });
+
+    zone.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      zone.classList.add('dragover');
+    });
+
+    zone.addEventListener('dragleave', function() {
+      zone.classList.remove('dragover');
+    });
+
+    zone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      zone.classList.remove('dragover');
+      var files = e.dataTransfer.files;
+      if (files.length > 0) {
+        input.files = files;
+        input.dispatchEvent(new Event('change'));
+      }
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', function() {
-    // Step buttons
     document.getElementById('btn-step1-next').addEventListener('click', goStep2);
     document.getElementById('btn-step2-back').addEventListener('click', function() { setStep(1); });
     document.getElementById('btn-step2-next').addEventListener('click', goStep3);
     document.getElementById('btn-step3-back').addEventListener('click', function() { setStep(2); });
-    
-    // File uploads
+
     handleFileUpload('s2-idfront', 'preview-front', 'upload-front');
     handleFileUpload('s2-idback', 'preview-back', 'upload-back');
-    
-    // Code input auto-focus and navigation
+
     var codeInputs = ['c1', 'c2', 'c3', 'c4'];
     codeInputs.forEach(function(id, idx) {
       var el = document.getElementById(id);
@@ -900,14 +865,13 @@ function handleFileUpload(inputId, previewId, zoneId) {
             document.getElementById(codeInputs[idx + 1]).focus();
           }
         });
-        
+
         el.addEventListener('keydown', function(e) {
           if (e.key === 'Backspace' && !this.value && idx > 0) {
             document.getElementById(codeInputs[idx - 1]).focus();
           }
         });
-        
-        // Paste handling
+
         el.addEventListener('paste', function(e) {
           e.preventDefault();
           var pasteData = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 4);
@@ -920,14 +884,13 @@ function handleFileUpload(inputId, previewId, zoneId) {
         });
       }
     });
-    
-    // Resend button
+
     document.getElementById('resend-btn').addEventListener('click', async function() {
       if (this.disabled) return;
-      
+
       this.disabled = true;
       var email = document.getElementById('s1-email').value.trim();
-      
+
       try {
         var res = await fetch('/register/send-code', {
           method: 'POST',
@@ -935,7 +898,7 @@ function handleFileUpload(inputId, previewId, zoneId) {
           body: JSON.stringify({ email: email })
         });
         var data = await res.json();
-        
+
         if (data.success) {
           startResendTimer();
         } else {
@@ -947,22 +910,20 @@ function handleFileUpload(inputId, previewId, zoneId) {
         this.disabled = false;
       }
     });
-    
-    // Form submit
+
     document.getElementById('reg-form').addEventListener('submit', function(e) {
-      var code = 
+      var code =
         document.getElementById('c1').value +
         document.getElementById('c2').value +
         document.getElementById('c3').value +
         document.getElementById('c4').value;
-      
+
       if (code.length !== 4 || !/^\d{4}$/.test(code)) {
         e.preventDefault();
         alert('Please enter the full 4-digit code');
         return false;
       }
-      
-      // Fill hidden fields
+
       document.getElementById('f-username').value = document.getElementById('s1-username').value.trim();
       document.getElementById('f-email').value = document.getElementById('s1-email').value.trim();
       document.getElementById('f-password').value = document.getElementById('s1-password').value;
@@ -977,24 +938,22 @@ function handleFileUpload(inputId, previewId, zoneId) {
       document.getElementById('f-idtype').value = document.getElementById('s2-idtype').value;
       document.getElementById('f-idnumber').value = document.getElementById('s2-idnumber').value.trim();
       document.getElementById('f-code').value = code;
-      
-      // Transfer files to hidden inputs
+
       var idFrontFile = document.getElementById('s2-idfront').files[0];
       var idBackFile = document.getElementById('s2-idback').files[0];
-      
+
       if (idFrontFile) {
         var dt = new DataTransfer();
         dt.items.add(idFrontFile);
         document.getElementById('f-idfront').files = dt.files;
       }
-      
+
       if (idBackFile) {
         var dt2 = new DataTransfer();
         dt2.items.add(idBackFile);
         document.getElementById('f-idback').files = dt2.files;
       }
-      
-      // Disable submit button to prevent double submission
+
       document.getElementById('submit-btn').disabled = true;
       document.getElementById('submit-btn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
     });

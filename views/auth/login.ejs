@@ -20,18 +20,12 @@
             </div>
         <% } %>
 
-        <!-- Add this at the top of your login form card -->
         <% if (site && site.maintenance_mode) { %>
-            <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); border-radius: 10px; padding: 14px 16px; margin-bottom: 20px; display: flex; gap: 10px; align-items: flex-start;">
-                <i class="fas fa-tools" style="color: #f59e0b; margin-top: 2px;"></i>
+            <div class="maintenance-notice">
+                <i class="fas fa-tools"></i>
                 <div>
-                    <div style="color: #f59e0b; font-weight: 600; font-size: 13px; margin-bottom: 4px;">
-                        Platform Under Maintenance
-                    </div>
-                    <div style="color: #a1a1aa; font-size: 12px;">
-                        <%= site.name %> is currently undergoing maintenance. 
-                        Admin access only at this time.
-                    </div>
+                    <div class="maintenance-title">Platform Under Maintenance</div>
+                    <div class="maintenance-body"><%= site.name %> is currently undergoing maintenance. Admin access only at this time.</div>
                 </div>
             </div>
         <% } %>
@@ -40,26 +34,26 @@
             <form action="/login" method="POST">
                 <div class="form-group">
                     <label class="form-label">Email Address</label>
-                    <div style="position: relative;">
-                        <i class="fas fa-envelope" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #52525b;"></i>
+                    <div class="input-wrap">
+                        <i class="fas fa-envelope"></i>
                         <input type="email" name="email" class="form-input" placeholder="name@example.com" required style="padding-left: 48px;">
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Password</label>
-                    <div style="position: relative;">
-                        <i class="fas fa-lock" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #52525b;"></i>
+                    <div class="input-wrap">
+                        <i class="fas fa-lock"></i>
                         <input type="password" name="password" class="form-input" placeholder="••••••••" required style="padding-left: 48px;">
                     </div>
                 </div>
 
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-secondary); font-size: 14px;">
-                        <input type="checkbox" name="remember" style="accent-color: var(--accent-purple);">
+                <div class="login-row">
+                    <label class="remember-label">
+                        <input type="checkbox" name="remember">
                         Remember me
                     </label>
-                    <a href="/forgot-password" style="color: var(--accent-purple); text-decoration: none; font-size: 14px; font-weight: 500;">Forgot password?</a>
+                    <a href="/forgot-password" class="forgot-link">Forgot password?</a>
                 </div>
 
                 <button type="submit" class="btn btn-primary" style="width: 100%;">
@@ -68,9 +62,7 @@
                 </button>
             </form>
 
-            <div style="text-align: center; margin-top: 24px; color: var(--text-secondary); font-size: 14px;">
-                Or continue with
-            </div>
+            <div class="or-divider">Or continue with</div>
 
             <div style="display: flex; gap: 12px; margin-top: 16px;">
                 <button type="button" class="btn btn-outline" style="flex: 1;">
@@ -87,5 +79,54 @@
         </div>
     </div>
 </div>
+
+<style>
+    .auth-page .input-wrap { position: relative; }
+    .auth-page .input-wrap i {
+        position: absolute;
+        left: 16px; top: 50%;
+        transform: translateY(-50%);
+        color: var(--mist-dim);
+    }
+
+    .maintenance-notice {
+        background: rgba(245, 185, 66, 0.1);
+        border: 1px solid var(--warning);
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin-bottom: 20px;
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    .maintenance-notice i { color: var(--warning); margin-top: 2px; }
+    .maintenance-title { color: var(--warning); font-weight: 600; font-size: 13px; margin-bottom: 4px; font-family: 'Space Grotesk', sans-serif; }
+    .maintenance-body { color: var(--mist); font-size: 12px; }
+
+    .login-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+    .remember-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        color: var(--mist);
+        font-size: 14px;
+    }
+    .remember-label input { accent-color: var(--signal); }
+    .forgot-link { color: var(--signal); text-decoration: none; font-size: 14px; font-weight: 500; }
+
+    .or-divider {
+        text-align: center;
+        margin-top: 24px;
+        color: var(--mist-dim);
+        font-size: 13px;
+        position: relative;
+    }
+</style>
 
 <%- include('../partials/footer') %>

@@ -1,10 +1,33 @@
-<!-- views/error.ejs -->
 <%- include('partials/head', { title: typeof title !== 'undefined' ? title : 'Error' }) %>
 
 <div style="min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 24px;">
-    <div style="font-size: 80px; margin-bottom: 24px;">⚠️</div>
-    <h1 style="font-size: 24px; margin-bottom: 16px; color: #f4f4f5;">
+    <div style="width: 88px; height: 88px; border-radius: 20px; background: var(--alert-dim); border: 1px solid var(--alert); display: flex; align-items: center; justify-content: center; margin-bottom: 28px;">
+        <i class="fas fa-triangle-exclamation" style="font-size: 34px; color: var(--alert);"></i>
+    </div>
+
+    <span class="section-eyebrow" style="color: var(--alert);">
+        <%= typeof statusCode !== 'undefined' ? statusCode : 'Error' %>
+    </span>
+
+    <h1 style="font-size: 26px; margin-bottom: 14px; font-family: 'Space Grotesk', sans-serif; max-width: 480px;">
         <%= typeof message !== 'undefined' ? message : 'Something went wrong' %>
     </h1>
-    <a href="/dashboard" style="color: #8b5cf6; text-decoration: none;">Go to Dashboard</a>
+
+    <p style="color: var(--mist); max-width: 420px; margin-bottom: 32px;">
+        That didn't go as expected. Try again, or head back to your dashboard.
+    </p>
+
+    <div style="display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;">
+        <a href="/dashboard" class="btn btn-primary">
+            <i class="fas fa-gauge"></i>
+            Go to Dashboard
+        </a>
+        <a href="/" class="btn btn-outline">
+            <i class="fas fa-house"></i>
+            Back home
+        </a>
+    </div>
 </div>
+
+</body>
+</html>

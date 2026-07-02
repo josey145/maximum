@@ -2,588 +2,93 @@
 <%- include('../partials/navbar') %>
 <link rel="stylesheet" href="../css/dashboard.css">
 
-<style>
-/* Warning Alerts Styles */
-.warning-alerts {
-    margin-bottom: 24px;
-}
-
-.warning-card {
-    background: #fff;
-    border-radius: 12px;
-    padding: 20px 24px;
-    margin-bottom: 16px;
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-    border-left: 4px solid;
-    position: relative;
-    animation: slideIn 0.3s ease;
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateX(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-.warning-card.warning { 
-    border-left-color: #f59e0b; 
-    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-}
-.warning-card.error { 
-    border-left-color: #ef4444; 
-    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-}
-.warning-card.success { 
-    border-left-color: #22c55e; 
-    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-}
-.warning-card.info { 
-    border-left-color: #3b82f6; 
-    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-}
-
-.warning-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    flex-shrink: 0;
-}
-
-.warning-card.warning .warning-icon { 
-    background: #f59e0b20; 
-    color: #f59e0b; 
-}
-.warning-card.error .warning-icon { 
-    background: #ef444420; 
-    color: #ef4444; 
-}
-.warning-card.success .warning-icon { 
-    background: #22c55e20; 
-    color: #22c55e; 
-}
-.warning-card.info .warning-icon { 
-    background: #3b82f620; 
-    color: #3b82f6; 
-}
-
-.warning-content {
-    flex: 1;
-    min-width: 0;
-}
-
-.warning-title {
-    font-size: 17px;
-    font-weight: 700;
-    color: #111827;
-    margin: 0 0 8px;
-}
-
-.warning-text {
-    font-size: 14px;
-    color: #4b5563;
-    line-height: 1.6;
-    margin: 0 0 16px;
-}
-
-.warning-actions {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.warning-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.2s;
-    border: none;
-    cursor: pointer;
-}
-
-.warning-btn.primary {
-    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-    color: #fff;
-}
-
-.warning-btn.primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
-}
-
-.warning-btn.secondary {
-    background: #f3f4f6;
-    color: #6b7280;
-}
-
-.warning-btn.secondary:hover {
-    background: #e5e7eb;
-    color: #374151;
-}
-
-.dismiss-btn {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    background: rgba(0,0,0,0.05);
-    border: none;
-    color: #9ca3af;
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 8px;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-}
-
-.dismiss-btn:hover {
-    color: #6b7280;
-    background: rgba(0,0,0,0.1);
-}
-
-.no-warnings {
-    text-align: center;
-    padding: 20px;
-    color: #6b7280;
-    font-size: 14px;
-}
-
-/* Stats Cards Enhancement */
-.stat-card {
-    position: relative;
-    overflow: hidden;
-}
-
-.stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #8b5cf6, #6d28d9);
-    opacity: 0;
-    transition: opacity 0.3s;
-}
-
-.stat-card:hover::before {
-    opacity: 1;
-}
-
-/* Quick Actions Enhancement */
-.quick-actions {
-    display: flex;
-    gap: 12px;
-    margin-top: 20px;
-}
-
-.action-btn {
-    flex: 1;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 14px 24px;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.2s;
-}
-
-.action-btn-deposit {
-    background: linear-gradient(135deg, #22c55e, #16a34a);
-    color: #fff;
-}
-
-.action-btn-deposit:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
-}
-
-.action-btn-withdraw {
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-    color: #fff;
-}
-
-.action-btn-withdraw:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
-}
-
-/* Messages Badge */
-.messages-badge {
-    position: relative;
-}
-
-.messages-badge::after {
-    content: attr(data-count);
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    background: #ef4444;
-    color: #fff;
-    font-size: 11px;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 10px;
-    min-width: 20px;
-    text-align: center;
-}
-
-/* Message Alert Banner */
-.message-alert-banner {
-    background: #111118;
-    border: 1px solid #3b82f6;
-    border-left: 4px solid #3b82f6;
-    border-radius: 16px;
-    padding: 20px 24px;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
-    position: relative;
-    animation: slideIn 0.4s ease;
-}
-
-.msg-alert-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    flex-shrink: 0;
-}
-
-.icon-warning { background: rgba(245,158,11,0.15); color: #f59e0b; }
-.icon-pending { background: rgba(59,130,246,0.15); color: #3b82f6; }
-.icon-welcome { background: rgba(139,92,246,0.15); color: #8b5cf6; }
-.icon-general { background: rgba(59,130,246,0.15); color: #3b82f6; }
-
-.msg-alert-content {
-    flex: 1;
-    min-width: 0;
-}
-
-.msg-alert-meta {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 6px;
-    flex-wrap: wrap;
-}
-
-.msg-alert-from {
-    font-size: 12px;
-    color: #8b5cf6;
-    font-weight: 600;
-}
-
-.msg-alert-time {
-    font-size: 12px;
-    color: #52525b;
-}
-
-.msg-unread-dot {
-    background: #3b82f6;
-    color: #fff;
-    font-size: 10px;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 10px;
-    letter-spacing: 0.5px;
-}
-
-.msg-alert-subject {
-    font-size: 16px;
-    font-weight: 700;
-    color: #f4f4f5;
-    margin: 0 0 6px;
-}
-
-.msg-alert-preview {
-    font-size: 13px;
-    color: #a1a1aa;
-    line-height: 1.6;
-    margin: 0 0 14px;
-}
-
-.msg-alert-actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    align-items: center;
-}
-
-.msg-btn-read {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    padding: 10px 20px;
-    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-    color: #fff;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.2s;
-}
-
-.msg-btn-read:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(59,130,246,0.4);
-    color: #fff;
-}
-
-.msg-btn-inbox {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    padding: 10px 18px;
-    background: rgba(255,255,255,0.05);
-    color: #a1a1aa;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    text-decoration: none;
-    border: 1px solid #1e1e2e;
-    transition: all 0.2s;
-}
-
-.msg-btn-inbox:hover {
-    background: rgba(255,255,255,0.1);
-    color: #f4f4f5;
-}
-
-.msg-count-badge {
-    background: #ef4444;
-    color: #fff;
-    font-size: 10px;
-    font-weight: 700;
-    padding: 1px 7px;
-    border-radius: 10px;
-}
-
-.msg-alert-dismiss {
-    position: absolute;
-    top: 14px;
-    right: 14px;
-    background: rgba(255,255,255,0.05);
-    border: none;
-    color: #52525b;
-    cursor: pointer;
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-}
-
-.msg-alert-dismiss:hover {
-    background: rgba(255,255,255,0.1);
-    color: #a1a1aa;
-}
-</style>
-
-
-    
-    <!-- Warning Alerts Section -->
-
-
- <div class="dashboard-container">
-
-    <!-- Welcome Card with Balance -->
-    <div class="welcome-card">
-        <h1 class="welcome-title">Welcome back, <%= user.username %></h1>
-        <p class="welcome-subtitle">
-            <% if (user.account_verified) { %>
-                <i class="fas fa-check-circle" style="color: #22c55e;"></i> Verified Account
-            <% } else { %>
-                <i class="fas fa-clock" style="color: #facc15;"></i> Account Pending Verification
-            <% } %>
-        </p>
-        
-        <div class="balance-section">
-            <div class="balance-label">Available Balance</div>
-            <div class="balance-amount"><%= balanceFormatted %></div>
-            <div class="balance-currency" style="font-size: 12px; opacity: 0.8;">
-                Currency: <%= user.currency || 'USD' %>
-            </div>
-        </div>
-        
-        <div class="quick-actions">
-            <a href="/investments" class="action-btn action-btn-deposit">
-                <i class="fas fa-plus"></i> Invest
-            </a>
-            <a href="/transactions/withdraw/verify" class="action-btn action-btn-withdraw">
-                <i class="fas fa-minus"></i> Withdraw
-            </a>
-        </div>
-    </div>
-
-
-
-
 <div class="dashboard-container">
 
-
-<!-- WARNING ALERTS SECTION - Messages Only -->
-<% if (typeof warnings !== 'undefined' && warnings && warnings.length > 0) { %>
-<div class="warning-alerts">
-    <% warnings.forEach(warning => { 
-        // Colors based on admin message type
-        let iconColor, bgColor, borderColor;
-        
-        switch(warning.type) {
-            case 'warning':
-                iconColor = '#ef4444';      // Red
-                bgColor = 'rgba(239, 68, 68, 0.1)';
-                borderColor = '#ef4444';
-                break;
-            case 'pending':
-                iconColor = '#f59e0b';      // Orange/Yellow
-                bgColor = 'rgba(245, 158, 11, 0.1)';
-                borderColor = '#f59e0b';
-                break;
-            case 'welcome':
-                iconColor = '#22c55e';      // Green
-                bgColor = 'rgba(34, 197, 94, 0.1)';
-                borderColor = '#22c55e';
-                break;
-            case 'general':
-            default:
-                iconColor = '#3b82f6';      // Blue
-                bgColor = 'rgba(59, 130, 246, 0.1)';
-                borderColor = '#3b82f6';
-        }
-        
-        // Check if real database warning or virtual message
-        const isRealWarning = !isNaN(parseInt(warning.id));
-        const iconClass = warning.type === 'warning' ? 'fa-exclamation-triangle' : 
-                         warning.type === 'pending' ? 'fa-clock' :
-                         warning.type === 'welcome' ? 'fa-hand-sparkles' : 'fa-envelope';
-    %>
-    <div class="warning-card" id="warning-<%= warning.id %>" style="background: linear-gradient(135deg, <%= bgColor.replace('0.1', '0.05') %> 0%, <%= bgColor.replace('0.1', '0.15') %> 100%); border-left: 4px solid <%= borderColor %>; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; display: flex; align-items: flex-start; gap: 16px; position: relative; animation: slideIn 0.3s ease;">
-        <div class="warning-icon" style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; background: <%= bgColor %>; color: <%= iconColor %>;">
-            <i class="fas <%= iconClass %>"></i>
+    <!-- Greeting -->
+    <div class="welcome-header">
+        <div>
+            <h1 class="welcome-title">Welcome back, <%= user.username %></h1>
+            <p class="welcome-subtitle">
+                <% if (user.account_verified) { %>
+                    <i class="fas fa-check-circle"></i> Verified Account
+                <% } else { %>
+                    <i class="fas fa-clock"></i> Account Pending Verification
+                <% } %>
+            </p>
         </div>
-        <div class="warning-content" style="flex: 1; min-width: 0;">
-            <h3 class="warning-title" style="font-size: 17px; font-weight: 700; color: <%= iconColor %>; margin: 0 0 8px;"><%= warning.title %></h3>
-            <p class="warning-text" style="font-size: 14px; color: #4b5563; line-height: 1.6; margin: 0 0 16px;"><%= warning.message %></p>
-            <div class="warning-actions" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-                <a href="<%= warning.action_url || '/messages' %>" class="warning-btn" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; transition: all 0.2s; background: <%= iconColor %>; color: white;">
-                    <i class="fas fa-envelope-open"></i> <%= warning.action_text || 'Read' %>
-                </a>
-                <button class="warning-btn" onclick="clearMessage('<%= warning.id %>')" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; transition: all 0.2s; border: none; cursor: pointer; background: #f3f4f6; color: #6b7280;">
-                    <i class="fas fa-times"></i> Clear
-                </button>
-            </div>
-        </div>
-        <button class="dismiss-btn" onclick="clearMessage('<%= warning.id %>')" title="Clear" style="position: absolute; top: 16px; right: 16px; background: rgba(0,0,0,0.05); border: none; color: <%= iconColor %>; cursor: pointer; padding: 8px; border-radius: 8px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px;">
-            <i class="fas fa-times"></i>
-        </button>
     </div>
-    <% }) %>
-</div>
-<% } %>
-    <!-- Welcome Card with Balance -->
-    <div class="welcome-card">
-        
 
-    <!-- Stats Grid - Updated with Real Data -->
-    <div class="stats-grid">
-        <!-- Portfolio Value -->
-        <div class="stat-card">
-            <div class="stat-header">
-                <div>
-                    <div class="stat-label">Portfolio Value</div>
-                    <div class="stat-value"><%= totalValueFormatted %></div>
-                    <% if (tradeStats.winRate > 0) { %>
-                        <div class="stat-change <%= parseFloat(unrealizedPnLFormatted.replace(/[^0-9.-]/g, '')) >= 0 ? 'positive' : 'negative' %>">
-                            <i class="fas fa-arrow-<%= parseFloat(unrealizedPnLFormatted.replace(/[^0-9.-]/g, '')) >= 0 ? 'up' : 'down' %>"></i>
-                            Unrealized: <%= unrealizedPnLFormatted %>
-                        </div>
-                    <% } %>
-                </div>
-                <div class="stat-icon purple">
-                    <i class="fas fa-chart-pie"></i>
-                </div>
+    <!-- Top grid: Balance (light card) + Portfolio / Positions (dark cards) -->
+    <div class="top-grid">
+
+        <!-- Available Balance -->
+        <div class="balance-card">
+            <div>
+                <div class="balance-label">Available Balance</div>
+                <div class="balance-amount"><%= balanceFormatted %></div>
+                <div class="balance-currency">Currency: <%= user.currency || 'USD' %></div>
             </div>
-            <div class="stat-subtext"><%= tradeStats.openPositions %> active positions</div>
-        </div>
 
-        <!-- Active Investments -->
-        <div class="stat-card">
-            <div class="stat-header">
-                <div>
-                    <div class="stat-label">Active Investments</div>
-                    <div class="stat-value"><%= activeInvestmentFormatted %></div>
-                    <div class="stat-subtext"><%= tradeStats.openPositions %> open trades</div>
-                </div>
-                <div class="stat-icon green">
-                    <i class="fas fa-chart-line"></i>
-                </div>
+            <div class="quick-actions">
+                <a href="/investments" class="action-btn action-btn-deposit">
+                    <i class="fas fa-plus"></i> Invest
+                </a>
+                <a href="/transactions/withdraw/verify" class="action-btn action-btn-withdraw">
+                    <i class="fas fa-minus"></i> Withdraw
+                </a>
             </div>
         </div>
 
-        <!-- Total P&L -->
-        <div class="stat-card">
-            <div class="stat-header">
-                <div>
-                    <div class="stat-label">Total Profit/Loss</div>
-                    <div class="stat-value <%= parseFloat(totalPnLFormatted.replace(/[^0-9.-]/g, '')) >= 0 ? 'pnl-positive' : 'pnl-negative' %>">
-                        <%= parseFloat(totalPnLFormatted.replace(/[^0-9.-]/g, '')) >= 0 ? '+' : '' %><%= totalPnLFormatted %>
+        <!-- Portfolio Value + Open Positions -->
+        <div class="side-stack">
+            <div class="mini-card">
+                <div class="mini-card-top">
+                    <div>
+                        <div class="mini-card-label">Portfolio Value</div>
+                        <div class="mini-card-value"><%= totalValueFormatted %></div>
                     </div>
-                    <div class="stat-subtext">
-                        <%= tradeStats.winningTrades %> wins / <%= tradeStats.losingTrades %> losses
-                        (<%= tradeStats.winRate %>% win rate)
+                    <div class="mini-card-icon purple">
+                        <i class="fas fa-chart-pie"></i>
                     </div>
                 </div>
-                <div class="stat-icon blue">
-                    <i class="fas fa-wallet"></i>
+                <% if (tradeStats.winRate > 0) { %>
+                    <div class="mini-card-change <%= parseFloat(unrealizedPnLFormatted.replace(/[^0-9.-]/g, '')) >= 0 ? 'positive' : 'negative' %>">
+                        <i class="fas fa-arrow-<%= parseFloat(unrealizedPnLFormatted.replace(/[^0-9.-]/g, '')) >= 0 ? 'up' : 'down' %>"></i>
+                        Unrealized: <%= unrealizedPnLFormatted %>
+                    </div>
+                <% } %>
+            </div>
+
+            <div class="mini-card">
+                <div class="mini-card-top">
+                    <div>
+                        <div class="mini-card-value"><%= tradeStats.openPositions %></div>
+                        <div class="mini-card-sub">open positions</div>
+                    </div>
+                    <div class="mini-card-icon green">
+                        <i class="fas fa-arrow-trend-up"></i>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Total Deposits -->
-        <div class="stat-card">
-            <div class="stat-header">
-                <div>
-                    <div class="stat-label">Total Deposits</div>
-                    <div class="stat-value" style="color: #22c55e;">
-                        <%= typeof totalDepositsFormatted !== 'undefined' ? totalDepositsFormatted : '$0.00' %>
-                    </div>
-                    <div class="stat-subtext">
-                        <%= typeof totalDepositsCount !== 'undefined' ? totalDepositsCount : 0 %> deposits
-                    </div>
-                </div>
-                <div class="stat-icon" style="background: rgba(34, 197, 94, 0.1); color: #22c55e;">
-                    <i class="fas fa-arrow-down"></i>
-                </div>
+    <!-- Extra stats (P&L / Deposits) -->
+    <div class="card">
+        <div class="investment-details" style="grid-template-columns: repeat(2, 1fr); gap: 16px;">
+            <div class="investment-detail">
+                <span class="investment-label">Total Profit / Loss</span>
+                <span class="investment-value <%= parseFloat(totalPnLFormatted.replace(/[^0-9.-]/g, '')) >= 0 ? 'pnl-positive' : 'pnl-negative' %>">
+                    <%= parseFloat(totalPnLFormatted.replace(/[^0-9.-]/g, '')) >= 0 ? '+' : '' %><%= totalPnLFormatted %>
+                </span>
+                <span class="mini-card-sub"><%= tradeStats.winningTrades %> wins / <%= tradeStats.losingTrades %> losses (<%= tradeStats.winRate %>%)</span>
+            </div>
+            <div class="investment-detail">
+                <span class="investment-label">Total Deposits</span>
+                <span class="investment-value" style="color: var(--green);">
+                    <%= typeof totalDepositsFormatted !== 'undefined' ? totalDepositsFormatted : '$0.00' %>
+                </span>
+                <span class="mini-card-sub"><%= typeof totalDepositsCount !== 'undefined' ? totalDepositsCount : 0 %> deposits</span>
             </div>
         </div>
     </div>
@@ -605,61 +110,104 @@
         </div>
     </div>
 
-  
-    <!-- Active Investments Section -->
-<% if (activeInvestments && activeInvestments.length > 0) { %>
-<div class="card" style="background: #111118; border: 1px solid #1e1e2e; border-radius: 16px; padding: 20px; margin-bottom: 24px;">
-    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #f4f4f5;">
-        <i class="fas fa-briefcase" style="color: #8b5cf6; margin-right: 8px;"></i>
-        Active Positions (<%= activeInvestments.length %>)
-    </h3>
-    
-    <% activeInvestments.forEach(trade => { %>
-    <div class="investment-card">
-        <div class="investment-header">
-            <div>
-                <span class="investment-pair"><%= trade.pair_symbol || trade.symbol %></span>
-                <span style="font-size: 12px; color: #a1a1aa; margin-left: 8px;"><%= trade.pair_name %></span>
+    <!-- WARNING / MESSAGE ALERTS -->
+    <% if (typeof warnings !== 'undefined' && warnings && warnings.length > 0) { %>
+    <div class="warning-alerts">
+        <% warnings.forEach(warning => {
+            let iconColor, bgColor, borderColor;
+            switch(warning.type) {
+                case 'warning':
+                    iconColor = '#f43f5e'; bgColor = 'rgba(244, 63, 94, 0.12)'; borderColor = '#f43f5e'; break;
+                case 'pending':
+                    iconColor = '#f59e0b'; bgColor = 'rgba(245, 158, 11, 0.12)'; borderColor = '#f59e0b'; break;
+                case 'welcome':
+                    iconColor = '#22c55e'; bgColor = 'rgba(34, 197, 94, 0.12)'; borderColor = '#22c55e'; break;
+                case 'general':
+                default:
+                    iconColor = '#3b82f6'; bgColor = 'rgba(59, 130, 246, 0.12)'; borderColor = '#3b82f6';
+            }
+            const iconClass = warning.type === 'warning' ? 'fa-exclamation-triangle' :
+                             warning.type === 'pending' ? 'fa-clock' :
+                             warning.type === 'welcome' ? 'fa-hand-sparkles' : 'fa-envelope';
+        %>
+        <div class="warning-card" id="warning-<%= warning.id %>" style="border-left-color: <%= borderColor %>;">
+            <div class="warning-icon" style="background: <%= bgColor %>; color: <%= iconColor %>;">
+                <i class="fas <%= iconClass %>"></i>
             </div>
-            <span class="investment-direction direction-<%= trade.direction %>">
-                <%= trade.direction.toUpperCase() %>
-            </span>
+            <div class="warning-content">
+                <h3 class="warning-title" style="color: <%= iconColor %>;"><%= warning.title %></h3>
+                <p class="warning-text"><%= warning.message %></p>
+                <div class="warning-actions">
+                    <a href="<%= warning.action_url || '/messages' %>" class="warning-btn" style="background: <%= iconColor %>; color: white;">
+                        <i class="fas fa-envelope-open"></i> <%= warning.action_text || 'Read' %>
+                    </a>
+                    <button class="warning-btn secondary" onclick="clearMessage('<%= warning.id %>')">
+                        <i class="fas fa-times"></i> Clear
+                    </button>
+                </div>
+            </div>
+            <button class="dismiss-btn" onclick="clearMessage('<%= warning.id %>')" title="Clear" style="color: <%= iconColor %>;">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
-        <div class="investment-details">
-            <div class="investment-detail">
-                <span class="investment-label">Entry Price</span>
-                <span class="investment-value">
-                    <%= formatCurrency(trade.converted_entry_price || trade.entry_price, displayCurrency) %>
-                </span>
-            </div>
-            <div class="investment-detail">
-                <span class="investment-label">Lot Size</span>
-                <span class="investment-value"><%= trade.lot_size %></span>
-            </div>
-            <div class="investment-detail">
-                <span class="investment-label">P&L</span>
-                <span class="investment-value <%= parseFloat(trade.converted_profit_loss || trade.profit_loss) >= 0 ? 'pnl-positive' : 'pnl-negative' %>">
-                    <%= formatCurrency(trade.converted_profit_loss || trade.profit_loss, displayCurrency) %>
-                </span>
-            </div>
-        </div>
+        <% }) %>
     </div>
-    <% }) %>
-</div>
-<% } %>
+    <% } %>
+
+    <!-- Active Positions -->
+    <% if (activeInvestments && activeInvestments.length > 0) { %>
+    <div class="card">
+        <h3 class="section-title">
+            <i class="fas fa-briefcase"></i>
+            Active Positions (<%= activeInvestments.length %>)
+        </h3>
+
+        <% activeInvestments.forEach(trade => { %>
+        <div class="investment-card">
+            <div class="investment-header">
+                <div>
+                    <span class="investment-pair"><%= trade.pair_symbol || trade.symbol %></span>
+                    <span style="font-size: 11px; color: var(--text-faint); margin-left: 8px;"><%= trade.pair_name %></span>
+                </div>
+                <span class="investment-direction direction-<%= trade.direction %>">
+                    <%= trade.direction.toUpperCase() %>
+                </span>
+            </div>
+            <div class="investment-details">
+                <div class="investment-detail">
+                    <span class="investment-label">Entry Price</span>
+                    <span class="investment-value">
+                        <%= formatCurrency(trade.converted_entry_price || trade.entry_price, displayCurrency) %>
+                    </span>
+                </div>
+                <div class="investment-detail">
+                    <span class="investment-label">Lot Size</span>
+                    <span class="investment-value"><%= trade.lot_size %></span>
+                </div>
+                <div class="investment-detail">
+                    <span class="investment-label">P&L</span>
+                    <span class="investment-value <%= parseFloat(trade.converted_profit_loss || trade.profit_loss) >= 0 ? 'pnl-positive' : 'pnl-negative' %>">
+                        <%= formatCurrency(trade.converted_profit_loss || trade.profit_loss, displayCurrency) %>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <% }) %>
+    </div>
+    <% } %>
 
     <!-- Menu Grid -->
     <div class="menu-grid">
         <a href="/profile" class="menu-item">
-            <div class="menu-icon" style="background: rgba(139,92,246,0.1); color: #8b5cf6;">
+            <div class="menu-icon" style="background: rgba(139,92,246,0.12); color: #8b5cf6;">
                 <i class="fas fa-user"></i>
             </div>
             <div class="menu-title">Profile</div>
-            <div class="menu-desc">Edit your info</div>
+            <div class="menu-desc">Edit info</div>
         </a>
 
         <a href="/transactions/history" class="menu-item">
-            <div class="menu-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+            <div class="menu-icon" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b;">
                 <i class="fas fa-history"></i>
             </div>
             <div class="menu-title">History</div>
@@ -667,7 +215,7 @@
         </a>
 
         <a href="/trading" class="menu-item">
-            <div class="menu-icon" style="background: rgba(34,197,94,0.1); color: #22c55e;">
+            <div class="menu-icon" style="background: rgba(34,197,94,0.12); color: #22c55e;">
                 <i class="fas fa-exchange-alt"></i>
             </div>
             <div class="menu-title">Trading</div>
@@ -675,38 +223,35 @@
         </a>
 
         <a href="/investments" class="menu-item">
-            <div class="menu-icon" style="background: rgba(59,130,246,0.1); color: #3b82f6;">
+            <div class="menu-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
                 <i class="fas fa-chart-line"></i>
             </div>
             <div class="menu-title">Investments</div>
-            <div class="menu-desc">View portfolio</div>
+            <div class="menu-desc">Portfolio</div>
         </a>
 
-        <a href="/messages" class="menu-item <%= typeof unreadMessages !== 'undefined' && unreadMessages > 0 ? 'messages-badge' : '' %>" 
+        <a href="/messages" class="menu-item <%= typeof unreadMessages !== 'undefined' && unreadMessages > 0 ? 'messages-badge' : '' %>"
            data-count="<%= typeof unreadMessages !== 'undefined' ? unreadMessages : 0 %>">
-            <div class="menu-icon" style="background: rgba(236, 72, 153, 0.1); color: #ec4899;">
+            <div class="menu-icon" style="background: rgba(236, 72, 153, 0.12); color: #ec4899;">
                 <i class="fas fa-envelope"></i>
-                <% if (typeof unreadMessages !== 'undefined' && unreadMessages > 0) { %>
-                <span style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 10px;"><%= unreadMessages %></span>
-                <% } %>
             </div>
             <div class="menu-title">Messages</div>
             <div class="menu-desc">
-                <%= typeof unreadMessages !== 'undefined' && unreadMessages > 0 ? unreadMessages + ' new' : 'Inbox' %>
+                <%= typeof unreadMessages !== 'undefined' && unreadMessages > 0 ? unreadMessages + ' new inbox' : 'Inbox' %>
             </div>
         </a>
 
         <a href="/profile/settings" class="menu-item">
-            <div class="menu-icon" style="background: rgba(249,115,22,0.1); color: #f97316;">
+            <div class="menu-icon" style="background: rgba(249,115,22,0.12); color: #f97316;">
                 <i class="fas fa-cog"></i>
             </div>
             <div class="menu-title">Settings</div>
             <div class="menu-desc">Preferences</div>
         </a>
-        
+
         <% if (user.role === 'admin') { %>
         <a href="/admin" class="menu-item">
-            <div class="menu-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
+            <div class="menu-icon" style="background: rgba(239, 68, 68, 0.12); color: #ef4444;">
                 <i class="fas fa-shield-alt"></i>
             </div>
             <div class="menu-title">Admin</div>
@@ -715,39 +260,34 @@
         <% } %>
     </div>
 
-    <!-- Recent Activity - Real Trade History -->
-    <div class="card" style="background: #111118; border: 1px solid #1e1e2e; border-radius: 16px; padding: 20px;">
-        <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #f4f4f5;">
-            <i class="fas fa-list-alt" style="color: #8b5cf6; margin-right: 8px;"></i>
+    <!-- Recent Trading Activity -->
+    <div class="card">
+        <h3 class="section-title">
+            <i class="fas fa-list-alt"></i>
             Recent Trading Activity
         </h3>
-        
+
         <% if (recentTrades && recentTrades.length > 0) { %>
-            <div style="space-y: 12px;">
+            <div>
                 <% recentTrades.forEach(trade => { %>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #1e1e2e;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border);">
                         <div>
-                            <div style="font-weight: 500; color: #f4f4f5;">
+                            <div style="font-weight: 600; color: var(--text); font-size: 13px;">
                                 <%= trade.direction.toUpperCase() %> <%= trade.pair_symbol %>
-                                
-                                    <% 
-                                        const plSign = trade.profit_loss > 0 ? '+' : '';
-                                        const plPositive = trade.profit_loss > 0;
-                                    %>
-                                    <span class="pl-badge <%= plPositive ? 'pl-positive' : 'pl-negative' %>">
-                                        <%= plSign %>$<%= parseFloat(trade.profit_loss).toFixed(2) %>
-                                    </span>
+                                <% const plPositive = trade.profit_loss > 0; %>
+                                <span class="pl-badge <%= plPositive ? 'pl-positive' : 'pl-negative' %>">
+                                    <%= plPositive ? '+' : '' %>$<%= parseFloat(trade.profit_loss).toFixed(2) %>
+                                </span>
                             </div>
-                            <div style="font-size: 12px; color: #52525b;">
+                            <div style="font-size: 11px; color: var(--text-faint); margin-top: 3px;">
                                 <%= new Date(trade.closed_at).toLocaleDateString() %> • <%= trade.lot_size %> lots @ <%= trade.leverage_used %>x
                             </div>
                         </div>
                         <div style="text-align: right;">
-                            
                             <div class="pl-value" data-positive="<%= trade.profit_loss > 0 %>">
                                 <%= trade.profit_loss > 0 ? '+' : '' %>$<%= Math.abs(parseFloat(trade.profit_loss)).toFixed(2) %>
                             </div>
-                            <div style="font-size: 12px; color: #52525b;">
+                            <div style="font-size: 11px; color: var(--text-faint); margin-top: 3px;">
                                 <%= trade.close_reason || 'Closed' %>
                             </div>
                         </div>
@@ -755,14 +295,39 @@
                 <% }) %>
             </div>
         <% } else { %>
-            <div style="text-align: center; padding: 40px; color: #52525b;">
-                <i class="fas fa-history" style="font-size: 48px; margin-bottom: 16px; opacity: 0.3;"></i>
+            <div style="text-align: center; padding: 40px 0; color: var(--text-faint);">
+                <i class="fas fa-history" style="font-size: 40px; margin-bottom: 14px; opacity: 0.3;"></i>
                 <p>No trading activity yet</p>
-                <a href="/trading" style="color: #8b5cf6; margin-top: 12px; display: inline-block;">Start Trading →</a>
+                <a href="/trading" style="color: var(--accent); margin-top: 10px; display: inline-block; font-weight: 600;">Start Trading →</a>
             </div>
         <% } %>
     </div>
+
 </div>
+
+<!-- Bottom Nav (mobile) -->
+<nav class="bottom-nav">
+    <a href="/dashboard" class="nav-item active">
+        <i class="fas fa-th-large"></i>
+        Dashboard
+    </a>
+    <a href="/markets" class="nav-item">
+        <i class="fas fa-signal"></i>
+        Markets
+    </a>
+    <a href="/trading" class="nav-item">
+        <i class="fas fa-arrow-right-arrow-left"></i>
+        Trade
+    </a>
+    <a href="/investments" class="nav-item">
+        <i class="fas fa-chart-pie"></i>
+        Portfolio
+    </a>
+    <a href="/profile" class="nav-item">
+        <i class="fas fa-user"></i>
+        Account
+    </a>
+</nav>
 
 <%- include('../partials/footer') %>
 
@@ -770,18 +335,18 @@
 <script>
     if (typeof io !== 'undefined') {
         const socket = io();
-        
+
         socket.on('btcPrice', (data) => {
             if (!data || !data.price) return;
-            
+
             const priceEl = document.getElementById('btcPrice');
             const changeEl = document.getElementById('btcChange');
-            
+
             priceEl.textContent = '$' + data.price.toLocaleString();
-            
+
             const pct = data.change24h ? data.change24h.toFixed(2) : '0.00';
             const isPositive = data.change24h >= 0;
-            
+
             changeEl.className = 'ticker-change ' + (isPositive ? 'positive' : 'negative');
             changeEl.innerHTML = `<i class="fas fa-arrow-${isPositive ? 'up' : 'down'}"></i> ${Math.abs(pct)}%`;
         });
@@ -797,8 +362,7 @@
             setTimeout(() => {
                 warningCard.remove();
                 checkNoWarnings();
-                
-                // Store cleared message in sessionStorage
+
                 const cleared = JSON.parse(sessionStorage.getItem('clearedMessages') || '[]');
                 cleared.push(messageId);
                 sessionStorage.setItem('clearedMessages', JSON.stringify(cleared));
@@ -806,18 +370,16 @@
         }
     }
 
-    // Check if no warnings remain
     function checkNoWarnings() {
         const remaining = document.querySelectorAll('.warning-card');
         if (remaining.length === 0) {
             const alertsContainer = document.querySelector('.warning-alerts');
             if (alertsContainer) {
-                alertsContainer.innerHTML = '<div class="no-warnings" style="text-align: center; padding: 20px; color: #6b7280; font-size: 14px;"><i class="fas fa-check-circle" style="color: #22c55e;"></i> No new messages</div>';
+                alertsContainer.innerHTML = '<div class="no-warnings"><i class="fas fa-check-circle" style="color: #22c55e;"></i> No new messages</div>';
             }
         }
     }
 
-    // On page load, clear previously dismissed messages
     document.addEventListener('DOMContentLoaded', function() {
         const cleared = JSON.parse(sessionStorage.getItem('clearedMessages') || '[]');
         cleared.forEach(id => {
